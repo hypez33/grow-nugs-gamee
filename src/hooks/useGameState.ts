@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Strain } from '@/data/strains';
 import { EnvironmentState } from '@/data/environment';
+import { BREEDING_RECIPES } from '@/data/breeding';
+import { PESTS, TREATMENTS, getPestProtection } from '@/data/pests';
 
 export interface PlantModifiers {
   waterStacks: number;
@@ -644,7 +646,6 @@ export const useGameState = () => {
   const breedStrains = useCallback((parent1: string, parent2: string): boolean => {
     let success = false;
     setState(prev => {
-      const { BREEDING_RECIPES } = require('@/data/breeding');
       const recipe = BREEDING_RECIPES.find((r: any) => 
         (r.parent1 === parent1 && r.parent2 === parent2) || 
         (r.parent1 === parent2 && r.parent2 === parent1)
@@ -729,7 +730,6 @@ export const useGameState = () => {
   const treatInfestation = useCallback((infestationId: string, treatmentId: string, price: number): boolean => {
     if (state.nugs >= price) {
       setState(prev => {
-        const { TREATMENTS } = require('@/data/pests');
         const treatment = TREATMENTS.find((t: any) => t.id === treatmentId);
         if (!treatment) return prev;
 
@@ -755,7 +755,6 @@ export const useGameState = () => {
 
   const checkForPests = useCallback(() => {
     setState(prev => {
-      const { PESTS, getPestProtection } = require('@/data/pests');
       const protection = getPestProtection(prev.upgrades);
       const newInfestations: PestInfestation[] = [];
 
