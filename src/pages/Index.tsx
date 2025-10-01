@@ -358,6 +358,8 @@ const Index = () => {
                   slotIndex={index}
                   nugs={state.nugs}
                   upgrades={state.upgrades}
+                  environment={state.environment}
+                  pests={state.pests.infestations}
                   onPlant={handlePlantClick}
                   onWater={handleWater}
                   onFertilize={handleFertilize}

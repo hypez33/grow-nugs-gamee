@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Plant } from '@/hooks/useGameState';
+import { Plant, PestInfestation } from '@/hooks/useGameState';
 import { usePlantLogic } from '@/hooks/usePlantLogic';
 import { PHASES } from '@/data/phases';
-import { Droplets, Sprout, Sparkles } from 'lucide-react';
+import { Droplets, Sprout, Sparkles, Bug, AlertTriangle, Gauge, Wind } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { EnvironmentState } from '@/data/environment';
+import { PESTS } from '@/data/pests';
+import { Badge } from '@/components/ui/badge';
 
 // Import phase images
 import germinationImg from '@/assets/phases/germination.png';
@@ -30,6 +33,8 @@ interface PlantSlotProps {
   slotIndex: number;
   nugs: number;
   upgrades: Record<string, number>;
+  environment?: EnvironmentState;
+  pests?: PestInfestation[];
   onPlant: (slotIndex: number) => void;
   onWater: (slotIndex: number, skillBonus?: number) => void;
   onFertilize: (slotIndex: number) => void;
@@ -43,6 +48,8 @@ export const PlantSlot = ({
   slotIndex,
   nugs,
   upgrades,
+  environment,
+  pests,
   onPlant,
   onWater,
   onFertilize,
@@ -172,6 +179,53 @@ export const PlantSlot = ({
           <p className="font-semibold capitalize">{plant.modifiers.soilType}</p>
         </div>
       </div>
+
+      {/* Environment & Pests Info */}
+      {(environment || (pests && pests.length > 0)) && (
+        <div className="mb-4 space-y-2">
+          {/* Pests Warning */}
+          {pests && pests.filter(p => p.slotIndex === slotIndex && !p.treated).length > 0 && (
+            <div className="bg-destructive/10 border border-destructive/30 rounded p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <Bug className="w-4 h-4 text-destructive" />
+                <span className="text-xs font-semibold text-destructive">Schädlingsbefall!</span>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {pests
+                  .filter(p => p.slotIndex === slotIndex && !p.treated)
+                  .map(infestation => {
+                    const pest = PESTS.find(p => p.id === infestation.pestId);
+                    return pest ? (
+                      <Badge key={infestation.id} variant="destructive" className="text-xs">
+                        {pest.name}
+                      </Badge>
+                    ) : null;
+                  })}
+              </div>
+            </div>
+          )}
+
+          {/* Environment Stats */}
+          {environment && (
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="bg-muted/20 rounded p-2 flex items-center gap-2">
+                <Gauge className="w-3 h-3 text-muted-foreground" />
+                <div>
+                  <p className="text-muted-foreground">pH / EC</p>
+                  <p className="font-semibold">{environment.ph.toFixed(1)} / {environment.ec.toFixed(1)}</p>
+                </div>
+              </div>
+              <div className="bg-muted/20 rounded p-2 flex items-center gap-2">
+                <Wind className="w-3 h-3 text-muted-foreground" />
+                <div>
+                  <p className="text-muted-foreground">Luftfeuchtigkeit</p>
+                  <p className="font-semibold">{environment.humidity.toFixed(0)}%</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Water Level */}
       <div className="mb-4">
