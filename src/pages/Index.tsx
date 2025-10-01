@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGameState } from '@/hooks/useGameState';
 import { UPGRADES, getUpgradePrice } from '@/data/upgrades';
+import { ENV_UPGRADES } from '@/data/environment';
 import { usePlantLogic } from '@/hooks/usePlantLogic';
 import { PlantSlot } from '@/components/PlantSlot';
 import { ShopModal } from '@/components/ShopModal';
@@ -10,9 +11,12 @@ import { ShopContent } from '@/components/ShopContent';
 import { TradePanel } from '@/components/TradePanel';
 import { CuringPanel } from '@/components/CuringPanel';
 import { StatsPanel } from '@/components/StatsPanel';
+import { BreedingLab } from '@/components/BreedingLab';
+import { EnvironmentControl } from '@/components/EnvironmentControl';
+import { PestControl } from '@/components/PestControl';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Sprout, ShoppingCart, Save, RotateCcw, TrendingUp, Settings, BadgeDollarSign, Leaf, ListChecks, PartyPopper } from 'lucide-react';
+import { Sprout, ShoppingCart, Save, RotateCcw, TrendingUp, Settings, BadgeDollarSign, Leaf, ListChecks, PartyPopper, Dna, Droplets, Bug } from 'lucide-react';
 import nugIcon from '@/assets/ui/nug-icon.png';
 import {
   AlertDialog,
@@ -49,7 +53,14 @@ const Index = () => {
     recordPerfectWater,
     startCuring,
     processCuringTick,
-    rushCuring
+    rushCuring,
+    breedStrains,
+    createMotherPlant,
+    adjustEnvironment,
+    toggleLightCycle,
+    buyEnvUpgrade,
+    treatInfestation,
+    checkForPests
   } = useGameState();
 
   const logic = usePlantLogic(state.upgrades, state.event?.effects?.growthMultiplier ?? 1);
@@ -84,6 +95,14 @@ const Index = () => {
     }, 30000);
     return () => clearInterval(t);
   }, [state.event, state.settings.randomEventsEnabled, triggerRandomEvent]);
+
+  // Pest checks
+  useEffect(() => {
+    const t = setInterval(() => {
+      checkForPests();
+    }, 60000); // Check every minute
+    return () => clearInterval(t);
+  }, [checkForPests]);
 
   const handlePlantClick = (slotIndex: number) => {
     setPlantingSlot(slotIndex);
@@ -295,26 +314,38 @@ const Index = () => {
           </Card>
         )}
         <Tabs defaultValue="farm" className="space-y-6">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-5">
-            <TabsTrigger value="farm">
-              <Sprout className="w-4 h-4 mr-2" />
-              Farm
+          <TabsList className="grid w-full max-w-6xl mx-auto grid-cols-8 gap-1">
+            <TabsTrigger value="farm" className="text-xs md:text-sm">
+              <Sprout className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Farm</span>
             </TabsTrigger>
-            <TabsTrigger value="shop">
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              Shop
+            <TabsTrigger value="shop" className="text-xs md:text-sm">
+              <ShoppingCart className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Shop</span>
             </TabsTrigger>
-            <TabsTrigger value="trade">
-              <BadgeDollarSign className="w-4 h-4 mr-2" />
-              Handel
+            <TabsTrigger value="breeding" className="text-xs md:text-sm">
+              <Dna className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Züchtung</span>
             </TabsTrigger>
-            <TabsTrigger value="stats">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Stats
+            <TabsTrigger value="environment" className="text-xs md:text-sm">
+              <Droplets className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Umwelt</span>
             </TabsTrigger>
-            <TabsTrigger value="quests">
-              <ListChecks className="w-4 h-4 mr-2" />
-              Quests
+            <TabsTrigger value="pests" className="text-xs md:text-sm">
+              <Bug className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Schädlinge</span>
+            </TabsTrigger>
+            <TabsTrigger value="trade" className="text-xs md:text-sm">
+              <BadgeDollarSign className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Handel</span>
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="text-xs md:text-sm">
+              <TrendingUp className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Stats</span>
+            </TabsTrigger>
+            <TabsTrigger value="quests" className="text-xs md:text-sm">
+              <ListChecks className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Quests</span>
             </TabsTrigger>
           </TabsList>
 
@@ -347,20 +378,72 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="shop">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-4xl mx-auto space-y-6">
               <ShopContent
                 nugs={state.nugs}
                 upgrades={state.upgrades}
                 onBuySeed={handleBuySeed}
                 onBuyUpgrade={handleBuyUpgrade}
               />
+              <CuringPanel batches={state.curing?.batches || []} onRush={(id) => {
+                const ok = rushCuring(id);
+                if (ok) {
+                  toast.warning('Batch schnellgereift', { description: 'Qualität leicht gesenkt' });
+                }
+              }} />
             </div>
-            <CuringPanel batches={state.curing?.batches || []} onRush={(id) => {
-              const ok = rushCuring(id);
-              if (ok) {
-                toast.warning('Batch schnellgereift', { description: 'Qualität leicht gesenkt' });
-              }
-            }} />
+          </TabsContent>
+
+          <TabsContent value="breeding">
+            <BreedingLab
+              nugs={state.nugs}
+              motherPlants={state.breeding.motherPlants}
+              discoveredStrains={state.breeding.discoveredStrains}
+              onBreed={(p1, p2) => {
+                const success = breedStrains(p1, p2);
+                toast[success ? 'success' : 'warning'](
+                  success ? 'Neue Sorte entdeckt!' : 'Kreuzung fehlgeschlagen',
+                  { description: success ? 'Check deine verfügbaren Strains' : 'Versuche es erneut' }
+                );
+              }}
+              onCreateMother={createMotherPlant}
+              onClone={(motherId, slotIdx) => toast.info('Klon-System coming soon')}
+              onPlant={handlePlantClick}
+            />
+          </TabsContent>
+
+          <TabsContent value="environment">
+            <EnvironmentControl
+              environment={state.environment}
+              currentPhase="veg"
+              envUpgrades={state.envUpgrades}
+              nugs={state.nugs}
+              onAdjust={adjustEnvironment}
+              onBuyUpgrade={(id) => {
+                const upgrade = ENV_UPGRADES.find(u => u.id === id);
+                if (!upgrade) return;
+                const ok = buyEnvUpgrade(id, upgrade.basePrice);
+                if (ok) toast.success(`${upgrade.name} installiert!`);
+                else toast.error('Nicht genug Nugs!');
+              }}
+              onToggleLightCycle={toggleLightCycle}
+            />
+          </TabsContent>
+
+          <TabsContent value="pests">
+            <PestControl
+              infestations={state.pests.infestations}
+              nugs={state.nugs}
+              onTreat={(infId, treatId) => {
+                const ok = treatInfestation(infId, treatId, 50);
+                if (ok) toast.success('Behandlung erfolgreich!');
+                else toast.error('Nicht genug Nugs!');
+              }}
+              onPreventiveTreatment={() => {
+                if (spendNugs(100)) toast.success('Prophylaxe durchgeführt');
+                else toast.error('Nicht genug Nugs!');
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="stats">

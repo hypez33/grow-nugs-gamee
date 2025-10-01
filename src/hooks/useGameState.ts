@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Strain } from '@/data/strains';
+import { EnvironmentState } from '@/data/environment';
 
 export interface PlantModifiers {
   waterStacks: number;
@@ -8,6 +9,8 @@ export interface PlantModifiers {
   lastWaterTime: number;
   lastFertilizerTime: number;
   qualityMultiplier: number;
+  phenotypeId?: string;
+  pestInfestationIds: string[];
 }
 
 export interface Plant {
@@ -17,6 +20,24 @@ export interface Plant {
   elapsedInPhase: number;
   plantedAt: number;
   modifiers: PlantModifiers;
+}
+
+export interface MotherPlant {
+  id: string;
+  strainId: string;
+  phenotypeId?: string;
+  clonesTaken: number;
+  maxClones: number;
+  acquiredAt: number;
+}
+
+export interface PestInfestation {
+  id: string;
+  pestId: string;
+  slotIndex: number;
+  startedAt: number;
+  severity: number;
+  treated: boolean;
 }
 
 export interface TradeOffer {
@@ -94,6 +115,16 @@ export interface GameState {
     sfxEnabled: boolean;
     randomEventsEnabled: boolean;
   };
+  breeding: {
+    motherPlants: MotherPlant[];
+    discoveredStrains: string[];
+  };
+  environment: EnvironmentState;
+  envUpgrades: Record<string, number>;
+  pests: {
+    infestations: PestInfestation[];
+    lastCheckAt: number;
+  };
 }
 
 const DEFAULT_QUESTS: Quest[] = [
@@ -153,6 +184,23 @@ const INITIAL_STATE: GameState = {
   settings: {
     sfxEnabled: true,
     randomEventsEnabled: true
+  },
+  breeding: {
+    motherPlants: [],
+    discoveredStrains: ['green-gelato', 'honey-cream', 'gelato-auto']
+  },
+  environment: {
+    ph: 6.2,
+    ec: 1.5,
+    humidity: 60,
+    temperature: 24,
+    lightCycle: 'veg',
+    co2Level: 400
+  },
+  envUpgrades: {},
+  pests: {
+    infestations: [],
+    lastCheckAt: Date.now()
   }
 };
 
@@ -233,7 +281,8 @@ export const useGameState = () => {
           soilType,
           lastWaterTime: 0,
           lastFertilizerTime: 0,
-          qualityMultiplier: 1.0
+          qualityMultiplier: 1.0,
+          pestInfestationIds: []
         }
       };
       return { ...prev, slots: newSlots };
@@ -591,6 +640,156 @@ export const useGameState = () => {
     }));
   }, []);
 
+  // Breeding functions
+  const breedStrains = useCallback((parent1: string, parent2: string): boolean => {
+    let success = false;
+    setState(prev => {
+      const { BREEDING_RECIPES } = require('@/data/breeding');
+      const recipe = BREEDING_RECIPES.find((r: any) => 
+        (r.parent1 === parent1 && r.parent2 === parent2) || 
+        (r.parent1 === parent2 && r.parent2 === parent1)
+      );
+      
+      if (!recipe) return prev;
+      
+      const roll = Math.random();
+      success = roll < recipe.discoveryChance;
+      
+      if (success && !prev.breeding.discoveredStrains.includes(recipe.offspring)) {
+        return {
+          ...prev,
+          breeding: {
+            ...prev.breeding,
+            discoveredStrains: [...prev.breeding.discoveredStrains, recipe.offspring]
+          }
+        };
+      }
+      return prev;
+    });
+    return success;
+  }, []);
+
+  const createMotherPlant = useCallback((strainId: string, phenotypeId?: string) => {
+    setState(prev => ({
+      ...prev,
+      breeding: {
+        ...prev.breeding,
+        motherPlants: [
+          ...prev.breeding.motherPlants,
+          {
+            id: `mother-${Date.now()}`,
+            strainId,
+            phenotypeId,
+            clonesTaken: 0,
+            maxClones: 10,
+            acquiredAt: Date.now()
+          }
+        ]
+      }
+    }));
+  }, []);
+
+  // Environment functions
+  const adjustEnvironment = useCallback((param: keyof EnvironmentState, value: number) => {
+    setState(prev => ({
+      ...prev,
+      environment: {
+        ...prev.environment,
+        [param]: value
+      }
+    }));
+  }, []);
+
+  const toggleLightCycle = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      environment: {
+        ...prev.environment,
+        lightCycle: prev.environment.lightCycle === 'veg' ? 'flower' : 'veg'
+      }
+    }));
+  }, []);
+
+  const buyEnvUpgrade = useCallback((upgradeId: string, price: number): boolean => {
+    if (state.nugs >= price) {
+      setState(prev => ({
+        ...prev,
+        nugs: prev.nugs - price,
+        envUpgrades: {
+          ...prev.envUpgrades,
+          [upgradeId]: 1
+        }
+      }));
+      return true;
+    }
+    return false;
+  }, [state.nugs]);
+
+  // Pest functions
+  const treatInfestation = useCallback((infestationId: string, treatmentId: string, price: number): boolean => {
+    if (state.nugs >= price) {
+      setState(prev => {
+        const { TREATMENTS } = require('@/data/pests');
+        const treatment = TREATMENTS.find((t: any) => t.id === treatmentId);
+        if (!treatment) return prev;
+
+        const success = Math.random() < treatment.effectiveness;
+        
+        return {
+          ...prev,
+          nugs: prev.nugs - price,
+          pests: {
+            ...prev.pests,
+            infestations: prev.pests.infestations.map(inf =>
+              inf.id === infestationId
+                ? { ...inf, treated: true, severity: success ? 0 : inf.severity * 0.5 }
+                : inf
+            )
+          }
+        };
+      });
+      return true;
+    }
+    return false;
+  }, [state.nugs]);
+
+  const checkForPests = useCallback(() => {
+    setState(prev => {
+      const { PESTS, getPestProtection } = require('@/data/pests');
+      const protection = getPestProtection(prev.upgrades);
+      const newInfestations: PestInfestation[] = [];
+
+      prev.slots.forEach((plant, slotIndex) => {
+        if (!plant) return;
+        
+        PESTS.forEach((pest: any) => {
+          const chance = pest.baseChance * (1 - protection);
+          if (Math.random() < chance) {
+            newInfestations.push({
+              id: `pest-${Date.now()}-${slotIndex}-${pest.id}`,
+              pestId: pest.id,
+              slotIndex,
+              startedAt: Date.now(),
+              severity: Math.random() * 30 + 10,
+              treated: false
+            });
+          }
+        });
+      });
+
+      if (newInfestations.length === 0) return prev;
+
+      return {
+        ...prev,
+        pests: {
+          ...prev.pests,
+          infestations: [...prev.pests.infestations, ...newInfestations],
+          lastCheckAt: Date.now()
+        }
+      };
+    });
+  }, []);
+
   return {
     state,
     manualSave,
@@ -615,6 +814,13 @@ export const useGameState = () => {
     tickEvent,
     startCuring,
     processCuringTick,
-    rushCuring
+    rushCuring,
+    breedStrains,
+    createMotherPlant,
+    adjustEnvironment,
+    toggleLightCycle,
+    buyEnvUpgrade,
+    treatInfestation,
+    checkForPests
   };
 };

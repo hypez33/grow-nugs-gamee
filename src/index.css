@@ -101,3 +101,51 @@ All colors MUST be HSL.
   60% { transform: translateY(-40px) scale(1); opacity: 1; }
   100% { transform: translateY(-70px) scale(0.9); opacity: 0; }
 }
+
+/* Pest animations */
+@keyframes pest-alert {
+  0%, 100% { transform: translateY(0) scale(1); }
+  25% { transform: translateY(-4px) scale(1.05); }
+  75% { transform: translateY(2px) scale(0.95); }
+}
+
+.pest-alert {
+  animation: pest-alert 1s ease-in-out infinite;
+}
+
+/* Breeding glow effect */
+@keyframes breed-glow {
+  0%, 100% { box-shadow: 0 0 20px hsl(140 65% 45% / 0.3); }
+  50% { box-shadow: 0 0 40px hsl(140 65% 45% / 0.6), 0 0 60px hsl(45 85% 55% / 0.4); }
+}
+
+.breed-glow {
+  animation: breed-glow 2s ease-in-out infinite;
+}
+
+/* Shimmer effect for phenotypes */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(140 65% 45% / 0.3) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Environment status pulse */
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.status-pulse {
+  animation: status-pulse 2s ease-in-out infinite;
+}
