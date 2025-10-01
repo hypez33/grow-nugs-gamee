@@ -16,10 +16,11 @@ import { BreedingLab } from '@/components/BreedingLab';
 import { EnvironmentControl } from '@/components/EnvironmentControl';
 import { PestControl } from '@/components/PestControl';
 import { HarvestingGameWrapper } from '@/components/HarvestingGameWrapper';
+import { ResearchTree } from '@/components/ResearchTree';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
-import { Sprout, ShoppingCart, Save, RotateCcw, TrendingUp, Settings, BadgeDollarSign, Leaf, ListChecks, PartyPopper, Dna, Droplets, Bug } from 'lucide-react';
+import { Sprout, ShoppingCart, Save, RotateCcw, TrendingUp, Settings, BadgeDollarSign, Leaf, ListChecks, PartyPopper, Dna, Droplets, Bug, Microscope } from 'lucide-react';
 import nugIcon from '@/assets/ui/nug-icon.png';
 import {
   AlertDialog,
@@ -68,7 +69,9 @@ const Index = () => {
     checkForPests,
     driftEnvironmentValues,
     updateSettings,
-    applyTraining
+    applyTraining,
+    startResearch,
+    cancelResearch
   } = useGameState();
 
   const logic = usePlantLogic(state.upgrades, state.event?.effects?.growthMultiplier ?? 1, state.breeding.customStrains);
@@ -375,7 +378,7 @@ const Index = () => {
           </Card>
         )}
         <Tabs defaultValue="farm" className="space-y-6">
-          <TabsList className="grid w-full max-w-6xl mx-auto grid-cols-9 gap-1">
+          <TabsList className="grid w-full max-w-6xl mx-auto grid-cols-10 gap-1">
             <TabsTrigger value="farm" className="text-xs md:text-sm transition-all hover:scale-105">
               <Sprout className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden md:inline">Farm</span>
@@ -395,6 +398,10 @@ const Index = () => {
             <TabsTrigger value="pests" className="text-xs md:text-sm transition-all hover:scale-105">
               <Bug className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden md:inline">Schädlinge</span>
+            </TabsTrigger>
+            <TabsTrigger value="research" className="text-xs md:text-sm transition-all hover:scale-105">
+              <Microscope className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Forschung</span>
             </TabsTrigger>
             <TabsTrigger value="trade" className="text-xs md:text-sm transition-all hover:scale-105">
               <BadgeDollarSign className="w-4 h-4 mr-1 md:mr-2" />
@@ -531,6 +538,16 @@ const Index = () => {
                 if (spendNugs(100)) toast.success('Prophylaxe durchgeführt');
                 else toast.error('Nicht genug Nugs!');
               }}
+            />
+          </TabsContent>
+
+          <TabsContent value="research">
+            <ResearchTree
+              researchPoints={state.research.points}
+              completedResearch={state.research.completedResearch}
+              activeResearch={state.research.activeResearch}
+              onStartResearch={startResearch}
+              onCancelResearch={cancelResearch}
             />
           </TabsContent>
 
