@@ -501,30 +501,30 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50 animate-fade-in">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Sprout className="w-8 h-8 text-primary animate-pulse" />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hover:scale-105 transition-transform">
+        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Sprout className="w-6 h-6 sm:w-8 sm:h-8 text-primary animate-pulse" />
+              <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 Cannabis Grower
               </h1>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-gradient-to-br from-muted/50 to-muted/30 px-4 py-2 rounded-lg transition-all hover:scale-105 hover:shadow-lg">
-                <Leaf className="w-6 h-6 text-primary animate-pulse" />
-                <span className="text-2xl font-bold text-primary">{state.buds}</span>
-                <span className="text-sm text-muted-foreground">Buds</span>
+            <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-center">
+              <div className="flex items-center gap-1 sm:gap-2 bg-gradient-to-br from-muted/50 to-muted/30 px-2 sm:px-4 py-1 sm:py-2 rounded-lg">
+                <Leaf className="w-4 h-4 sm:w-6 sm:h-6 text-primary animate-pulse" />
+                <span className="text-lg sm:text-2xl font-bold text-primary">{state.buds}</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">Buds</span>
               </div>
-              <div className="flex items-center gap-2 bg-gradient-to-br from-muted/50 to-muted/30 px-4 py-2 rounded-lg transition-all hover:scale-105 hover:shadow-lg">
-                <img src={nugIcon} alt="Nugs" className="w-6 h-6 animate-pulse" />
-                <span className="text-2xl font-bold text-accent">{state.nugs}</span>
-                <span className="text-sm text-muted-foreground">Nugs</span>
+              <div className="flex items-center gap-1 sm:gap-2 bg-gradient-to-br from-muted/50 to-muted/30 px-2 sm:px-4 py-1 sm:py-2 rounded-lg">
+                <img src={nugIcon} alt="Nugs" className="w-4 h-4 sm:w-6 sm:h-6 animate-pulse" />
+                <span className="text-lg sm:text-2xl font-bold text-accent">{state.nugs}</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">Nugs</span>
               </div>
-              <div className="flex items-center gap-2 bg-gradient-to-br from-info/20 to-info/10 px-4 py-2 rounded-lg transition-all hover:scale-105 hover:shadow-lg border border-info/30">
-                <Microscope className="w-5 h-5 text-info" />
-                <span className="text-xl font-bold text-info">{state.research.points}</span>
-                <span className="text-xs text-muted-foreground">RP</span>
+              <div className="flex items-center gap-1 sm:gap-2 bg-gradient-to-br from-info/20 to-info/10 px-2 sm:px-4 py-1 sm:py-2 rounded-lg border border-info/30">
+                <Microscope className="w-4 h-4 sm:w-5 sm:h-5 text-info" />
+                <span className="text-base sm:text-xl font-bold text-info">{state.research.points}</span>
+                <span className="text-[10px] sm:text-xs text-muted-foreground">RP</span>
               </div>
 
               <Button
@@ -532,9 +532,9 @@ const Index = () => {
                 size="icon"
                 onClick={handleManualSave}
                 title="Manuell speichern"
-                className="transition-all hover:scale-110 hover:bg-primary/10"
+                className="transition-all hover:scale-110 hover:bg-primary/10 h-8 w-8 sm:h-10 sm:w-10"
               >
-                <Save className="w-4 h-4" />
+                <Save className="w-3 h-3 sm:w-4 sm:h-4" />
               </Button>
 
               <Button
@@ -542,9 +542,9 @@ const Index = () => {
                 size="icon"
                 onClick={() => setResetDialogOpen(true)}
                 title="Spiel zurücksetzen"
-                className="transition-all hover:scale-110 hover:bg-destructive/10"
+                className="transition-all hover:scale-110 hover:bg-destructive/10 h-8 w-8 sm:h-10 sm:w-10"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
               </Button>
             </div>
           </div>
@@ -552,7 +552,7 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {state.event && (
           <Card className="p-4 mb-6 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30">
             <div className="flex items-start justify-between gap-4">
@@ -570,46 +570,46 @@ const Index = () => {
           </Card>
         )}
         <Tabs defaultValue="farm" className="space-y-6">
-          <TabsList className="grid w-full max-w-6xl mx-auto grid-cols-10 gap-1">
-            <TabsTrigger value="farm" className="text-xs md:text-sm transition-all hover:scale-105">
-              <Sprout className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden md:inline">Farm</span>
+          <TabsList className="grid w-full max-w-6xl mx-auto grid-cols-5 sm:grid-cols-10 gap-1">
+            <TabsTrigger value="farm" className="flex-col sm:flex-row text-xs md:text-sm transition-all hover:scale-105 py-2 sm:py-1.5">
+              <Sprout className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2 mb-1 sm:mb-0" />
+              <span className="hidden sm:inline">Farm</span>
             </TabsTrigger>
-            <TabsTrigger value="shop" className="text-xs md:text-sm transition-all hover:scale-105">
-              <ShoppingCart className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden md:inline">Shop</span>
+            <TabsTrigger value="shop" className="flex-col sm:flex-row text-xs md:text-sm transition-all hover:scale-105 py-2 sm:py-1.5">
+              <ShoppingCart className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2 mb-1 sm:mb-0" />
+              <span className="hidden sm:inline">Shop</span>
             </TabsTrigger>
-            <TabsTrigger value="breeding" className="text-xs md:text-sm transition-all hover:scale-105">
-              <Dna className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden md:inline">Züchtung</span>
+            <TabsTrigger value="breeding" className="flex-col sm:flex-row text-xs md:text-sm transition-all hover:scale-105 py-2 sm:py-1.5">
+              <Dna className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2 mb-1 sm:mb-0" />
+              <span className="hidden sm:inline">Züchtung</span>
             </TabsTrigger>
-            <TabsTrigger value="environment" className="text-xs md:text-sm transition-all hover:scale-105">
-              <Droplets className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden md:inline">Umwelt</span>
+            <TabsTrigger value="environment" className="flex-col sm:flex-row text-xs md:text-sm transition-all hover:scale-105 py-2 sm:py-1.5">
+              <Droplets className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2 mb-1 sm:mb-0" />
+              <span className="hidden sm:inline">Umwelt</span>
             </TabsTrigger>
-            <TabsTrigger value="pests" className="text-xs md:text-sm transition-all hover:scale-105">
-              <Bug className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden md:inline">Schädlinge</span>
+            <TabsTrigger value="pests" className="flex-col sm:flex-row text-xs md:text-sm transition-all hover:scale-105 py-2 sm:py-1.5">
+              <Bug className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2 mb-1 sm:mb-0" />
+              <span className="hidden sm:inline">Schädlinge</span>
             </TabsTrigger>
-            <TabsTrigger value="research" className="text-xs md:text-sm transition-all hover:scale-105">
-              <Microscope className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden md:inline">Forschung</span>
+            <TabsTrigger value="research" className="flex-col sm:flex-row text-xs md:text-sm transition-all hover:scale-105 py-2 sm:py-1.5">
+              <Microscope className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2 mb-1 sm:mb-0" />
+              <span className="hidden sm:inline">Forschung</span>
             </TabsTrigger>
-            <TabsTrigger value="trade" className="text-xs md:text-sm transition-all hover:scale-105">
-              <BadgeDollarSign className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden md:inline">Handel</span>
+            <TabsTrigger value="trade" className="flex-col sm:flex-row text-xs md:text-sm transition-all hover:scale-105 py-2 sm:py-1.5">
+              <BadgeDollarSign className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2 mb-1 sm:mb-0" />
+              <span className="hidden sm:inline">Handel</span>
             </TabsTrigger>
-            <TabsTrigger value="stats" className="text-xs md:text-sm transition-all hover:scale-105">
-              <TrendingUp className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden md:inline">Stats</span>
+            <TabsTrigger value="stats" className="flex-col sm:flex-row text-xs md:text-sm transition-all hover:scale-105 py-2 sm:py-1.5">
+              <TrendingUp className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2 mb-1 sm:mb-0" />
+              <span className="hidden sm:inline">Stats</span>
             </TabsTrigger>
-            <TabsTrigger value="quests" className="text-xs md:text-sm transition-all hover:scale-105">
-              <ListChecks className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden md:inline">Quests</span>
+            <TabsTrigger value="quests" className="flex-col sm:flex-row text-xs md:text-sm transition-all hover:scale-105 py-2 sm:py-1.5">
+              <ListChecks className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2 mb-1 sm:mb-0" />
+              <span className="hidden sm:inline">Quests</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="text-xs md:text-sm transition-all hover:scale-105">
-              <Settings className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden md:inline">Settings</span>
+            <TabsTrigger value="settings" className="flex-col sm:flex-row text-xs md:text-sm transition-all hover:scale-105 py-2 sm:py-1.5">
+              <Settings className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2 mb-1 sm:mb-0" />
+              <span className="hidden sm:inline">Settings</span>
             </TabsTrigger>
           </TabsList>
 
