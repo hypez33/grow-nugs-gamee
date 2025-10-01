@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -56,32 +56,25 @@ export const TrainingModal = ({
   const startMinigame = (technique: TrainingTechnique) => {
     setSelectedTechnique(technique);
     setMinigameActive(true);
-    setSliderPos(50);
+    setSliderPos(0);
     setSliderDir(1);
+  };
 
-    // Animate slider (same speed as watering)
-    const interval = setInterval(() => {
+  // Animate slider with useEffect (like watering minigame)
+  useEffect(() => {
+    if (!minigameActive) return;
+    const id = setInterval(() => {
       setSliderPos(prev => {
         let next = prev + sliderDir * 2.5;
-        if (next >= 98) {
-          next = 98;
-          setSliderDir(-1);
-        }
-        if (next <= 2) {
-          next = 2;
-          setSliderDir(1);
-        }
+        if (next >= 98) { next = 98; setSliderDir(-1); }
+        if (next <= 2) { next = 2; setSliderDir(1); }
         return next;
       });
     }, 20);
-
-    // Store interval for cleanup
-    (window as any).trainingInterval = interval;
-  };
+    return () => clearInterval(id);
+  }, [minigameActive, sliderDir]);
 
   const stopMinigame = () => {
-    clearInterval((window as any).trainingInterval);
-    
     if (!selectedTechnique) return;
 
     // Calculate success based on how close to center (50%) - same as watering
