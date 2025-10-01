@@ -160,8 +160,8 @@ const DEFAULT_QUESTS: Quest[] = [
 ];
 
 const INITIAL_STATE: GameState = {
-  nugs: 100,
-  buds: 0,
+  nugs: 1000,
+  buds: 500,
   slots: [null, null],
   upgrades: {},
   curing: { batches: [] },
