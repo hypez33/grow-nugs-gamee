@@ -102,81 +102,81 @@ export const generateStrainName = (generation: number): string => {
   return parts.join(' ');
 };
 
-// Mögliche Mutationen mit extremen Boni (200-300%!)
+// Balanced Mutations (Max 150% bonus for legendary)
 export const MUTATIONS: Mutation[] = [
-  // LEGENDARY Tier - Game Breaking (200-300%)
+  // LEGENDARY Tier - Powerful (100-150% bonus)
   {
     id: 'megalodon',
-    name: '🦈 Megalodon Gene',
+    name: '🦈 Megalodon',
     type: 'yield',
-    bonus: 4.0, // +300% Ertrag!!!
-    description: 'Gigantische Monster-Erträge!',
+    bonus: 2.5, // +150% Ertrag
+    description: 'Gigantische Monster-Erträge! +150%',
     rarity: 'legendary'
   },
   {
     id: 'supersonic',
-    name: '⚡ Supersonic Growth',
+    name: '⚡ Supersonic',
     type: 'speed',
-    bonus: 0.3, // 70% schneller!!!
-    description: 'Wächst in Lichtgeschwindigkeit!',
+    bonus: 0.4, // 60% schneller
+    description: 'Hyperwachstum! 60% schneller',
     rarity: 'legendary'
   },
   {
     id: 'midas-touch',
     name: '👑 Midas Touch',
     type: 'quality',
-    bonus: 3.5, // +250% Qualität!!!
-    description: 'Pures Gold in Pflanzenform!',
+    bonus: 2.0, // +100% Qualität
+    description: 'Goldene Qualität! +100%',
     rarity: 'legendary'
   },
   {
     id: 'omnipotent',
-    name: '✨ Omnipotent Gene',
+    name: '✨ Omnipotent',
     type: 'super',
-    bonus: 3.0, // +200% auf ALLES!!!
-    description: 'Göttliche Perfektion!',
+    bonus: 1.6, // +60% auf ALLES
+    description: 'Göttliche Perfektion! +60% auf ALLES',
     rarity: 'legendary'
   },
   {
     id: 'godzilla',
-    name: '🦖 Godzilla Gene',
+    name: '🦖 Godzilla',
     type: 'yield',
-    bonus: 2.5, // +150% Ertrag!
-    description: 'Monströse Erträge!',
+    bonus: 2.3, // +130% Ertrag
+    description: 'Monströse Erträge! +130%',
     rarity: 'legendary'
   },
   {
     id: 'diamond',
     name: '💎 Diamond Trichomes',
     type: 'quality',
-    bonus: 2.0, // +100% Qualität!
-    description: 'Kristallklare Perfektion!',
+    bonus: 1.8, // +80% Qualität
+    description: 'Kristallklare Perfektion! +80%',
     rarity: 'legendary'
   },
   
-  // EPIC Tier - Very Strong (80-150%)
+  // EPIC Tier - Strong (60-100% bonus)
   {
     id: 'titan',
     name: '⚔️ Titan Blood',
     type: 'yield',
-    bonus: 2.2, // +120% Ertrag
-    description: 'Titanische Kraft!',
+    bonus: 1.9, // +90% Ertrag
+    description: 'Titanische Kraft! +90%',
     rarity: 'epic'
   },
   {
     id: 'rocket',
     name: '🚀 Rocket Growth',
     type: 'speed',
-    bonus: 0.4, // 60% schneller!
-    description: 'Wächst wie verrückt!',
+    bonus: 0.5, // 50% schneller
+    description: 'Raketenwachstum! 50% schneller',
     rarity: 'epic'
   },
   {
     id: 'mega-yield',
     name: '🌟 Mega Yield',
     type: 'yield',
-    bonus: 1.8, // +80% Ertrag
-    description: 'Überdurchschnittliche Erträge',
+    bonus: 1.7, // +70% Ertrag
+    description: 'Überdurchschnittliche Erträge! +70%',
     rarity: 'epic'
   },
   {
@@ -184,33 +184,33 @@ export const MUTATIONS: Mutation[] = [
     name: '⭐ Platinum Quality',
     type: 'quality',
     bonus: 1.6, // +60% Qualität
-    description: 'Premium Qualität',
+    description: 'Premium Qualität! +60%',
     rarity: 'epic'
   },
   {
     id: 'phoenix',
     name: '🔥 Phoenix Gene',
     type: 'super',
-    bonus: 1.8, // +80% auf ALLES
-    description: 'Aus der Asche wiedergeboren!',
+    bonus: 1.5, // +50% auf ALLES
+    description: 'Aus der Asche! +50% auf ALLES',
     rarity: 'epic'
   },
   
-  // RARE Tier - Good (40-60%)
+  // RARE Tier - Good (30-50% bonus)
   {
     id: 'godmode',
     name: '✨ God Mode',
     type: 'super',
-    bonus: 1.5, // +50% auf ALLES
-    description: 'Perfekte Genetik!',
+    bonus: 1.4, // +40% auf ALLES
+    description: 'Perfekte Genetik! +40%',
     rarity: 'rare'
   },
   {
     id: 'turbo',
     name: '⚡ Turbo Gene',
     type: 'speed',
-    bonus: 0.6, // 40% schneller
-    description: 'Beschleunigtes Wachstum',
+    bonus: 0.65, // 35% schneller
+    description: 'Beschleunigtes Wachstum! 35% schneller',
     rarity: 'rare'
   },
   {
@@ -218,22 +218,22 @@ export const MUTATIONS: Mutation[] = [
     name: '💪 Beast Mode',
     type: 'yield',
     bonus: 1.5, // +50% Ertrag
-    description: 'Kräftiges Wachstum',
+    description: 'Kräftiges Wachstum! +50%',
     rarity: 'rare'
   },
   {
     id: 'crystal',
     name: '💠 Crystal Gene',
     type: 'quality',
-    bonus: 1.4, // +40% Qualität
-    description: 'Kristalline Struktur',
+    bonus: 1.35, // +35% Qualität
+    description: 'Kristalline Struktur! +35%',
     rarity: 'rare'
   }
 ];
 
 const getMutationChance = (generation: number): number => {
-  // Base chance: 8%, increases with generation (höher für mehr Mutationen!)
-  return Math.min(0.08 + (generation * 0.03), 0.35); // Max 35% bei hohen Generationen
+  // Balanced: 6% base + 2.5% per generation, max 25%
+  return Math.min(0.06 + (generation * 0.025), 0.25);
 };
 
 const rollForMutation = (generation: number): Mutation | undefined => {
@@ -241,16 +241,16 @@ const rollForMutation = (generation: number): Mutation | undefined => {
   
   if (Math.random() > chance) return undefined;
   
-  // Weighted random selection based on rarity (höhere Legendary-Chance!)
+  // Weighted random selection with balanced legendary chance
   const roll = Math.random();
   let availableMutations: Mutation[];
   
-  // Generation bonus für Legendary (höhere Gen = höhere Legendary-Chance)
-  const legendaryBonus = Math.min(generation * 0.02, 0.08); // Max +8%
+  // Generation bonus for legendary (max 8% at gen 5+)
+  const legendaryBonus = Math.min(generation * 0.015, 0.08);
   
-  if (roll < (0.05 + legendaryBonus)) { // 5-13% legendary (je nach Generation!)
+  if (roll < (0.04 + legendaryBonus)) { // 4-12% legendary
     availableMutations = MUTATIONS.filter(m => m.rarity === 'legendary');
-  } else if (roll < 0.25) { // 20% epic
+  } else if (roll < 0.25) { // 21% epic
     availableMutations = MUTATIONS.filter(m => m.rarity === 'epic');
   } else { // 75% rare
     availableMutations = MUTATIONS.filter(m => m.rarity === 'rare');
@@ -303,16 +303,25 @@ export const breedTwoStrains = (parent1: CustomStrain, parent2: CustomStrain): C
     rarity = Math.random() > 0.8 ? 'rare' : 'common';
   }
   
-  // Gezüchtete Strains sind 40-60% günstiger! (Außer bei Mutation)
-  const priceReduction = mutation ? 1.0 : (0.4 + Math.random() * 0.2); // 40-60% günstiger
+  // Gezüchtete Strains sind 40-50% günstiger (Außer bei Elite-Mutationen)
+  // Extreme Mutationen haben höhere Wartungskosten
+  let priceReduction = 0.5 + Math.random() * 0.1; // 40-50% günstiger
+  if (mutation) {
+    // Elite mutations cost more to maintain
+    if (mutation.bonus >= 2.0) priceReduction = 0.9; // Only 10% cheaper
+    else if (mutation.bonus >= 1.5) priceReduction = 0.7; // 30% cheaper
+    else priceReduction = 0.8; // 20% cheaper
+  }
   const seedPrice = Math.round((parent1.seedPrice + parent2.seedPrice) / 2 * priceReduction);
   
-  // Mix terpene profiles
+  // Mix terpene profiles - with safety checks
   const terpeneProfile: TerpeneProfile = {};
-  const allTerpenes = new Set([...Object.keys(parent1.terpeneProfile), ...Object.keys(parent2.terpeneProfile)]);
+  const profile1 = parent1.terpeneProfile || {};
+  const profile2 = parent2.terpeneProfile || {};
+  const allTerpenes = new Set([...Object.keys(profile1), ...Object.keys(profile2)]);
   allTerpenes.forEach(terpene => {
-    const val1 = parent1.terpeneProfile[terpene] || 0;
-    const val2 = parent2.terpeneProfile[terpene] || 0;
+    const val1 = profile1[terpene] || 0;
+    const val2 = profile2[terpene] || 0;
     terpeneProfile[terpene] = Math.round((val1 + val2) / 2 * (0.9 + Math.random() * 0.2));
   });
   

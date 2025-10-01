@@ -121,11 +121,15 @@ export const usePlantLogic = (upgrades: Record<string, number>, growthMultiplier
       qualityChange *= customStrain.mutation.bonus;
     }
 
+    // Clamp quality multiplier to prevent extreme values (0.3 - 3.0)
+    const newQuality = plant.modifiers.qualityMultiplier + qualityChange;
+    const clampedQuality = Math.max(0.3, Math.min(3.0, newQuality));
+    
     return {
       ...plant.modifiers,
       waterStacks: Math.min(5, plant.modifiers.waterStacks + 1),
       lastWaterTime: Date.now(),
-      qualityMultiplier: Math.max(0.5, plant.modifiers.qualityMultiplier + qualityChange)
+      qualityMultiplier: clampedQuality
     };
   }, [upgrades, customStrains]);
 
@@ -151,11 +155,15 @@ export const usePlantLogic = (upgrades: Record<string, number>, growthMultiplier
       qualityChange = -0.05;
     }
 
+    // Clamp quality multiplier to prevent extreme values (0.3 - 3.0)
+    const newQuality = plant.modifiers.qualityMultiplier + qualityChange;
+    const clampedQuality = Math.max(0.3, Math.min(3.0, newQuality));
+    
     return {
       ...plant.modifiers,
       fertilizerApplied: true,
       lastFertilizerTime: Date.now(),
-      qualityMultiplier: Math.max(0.5, plant.modifiers.qualityMultiplier + qualityChange)
+      qualityMultiplier: clampedQuality
     };
   }, [getStrain, upgrades]);
 
@@ -229,10 +237,11 @@ export const usePlantLogic = (upgrades: Record<string, number>, growthMultiplier
 
     let multiplier = strain.baseTimeMultiplier;
 
-    // Mutation speed bonus (for custom strains)
+    // Mutation speed bonus (for custom strains) - capped at 70% faster max
     const customStrain = customStrains.find((s: CustomStrain) => s.id === strainId);
     if (customStrain?.mutation && (customStrain.mutation.type === 'speed' || customStrain.mutation.type === 'super')) {
-      multiplier *= customStrain.mutation.bonus;
+      const speedBonus = Math.max(0.3, customStrain.mutation.bonus); // Cap max speed
+      multiplier *= speedBonus;
     }
 
     // LED upgrade reduces time
@@ -245,7 +254,8 @@ export const usePlantLogic = (upgrades: Record<string, number>, growthMultiplier
     // Global growth multiplier from events
     multiplier *= growthMultiplier;
 
-    return Math.max(0.5, multiplier); // Min 50% of base time
+    // Ensure reasonable bounds: 20% minimum (not 50%)
+    return Math.max(0.2, Math.min(2.0, multiplier));
   }, [getStrain, upgrades, growthMultiplier]);
 
   return {

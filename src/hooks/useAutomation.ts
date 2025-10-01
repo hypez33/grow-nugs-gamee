@@ -103,8 +103,8 @@ export const useAutomation = (
   ): boolean => {
     if (!automation.isAutomated || !automation.autoReplantStrainId || plantExists) return false;
     
-    // Auto-replant the same strain
-    onPlantSeed(slotIndex, automation.autoReplantStrainId, 'basic');
+    // Auto-replant with light-mix soil (better ROI than basic)
+    onPlantSeed(slotIndex, automation.autoReplantStrainId, 'light-mix');
     return true;
   }, [onPlantSeed]);
 
