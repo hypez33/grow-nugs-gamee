@@ -441,6 +441,17 @@ const Index = () => {
                 </p>
               </div>
             )}
+
+            {/* Curing Panel */}
+            <CuringPanel
+              batches={state.curing?.batches || []}
+              onRush={(id) => {
+                const ok = rushCuring(id);
+                if (ok) {
+                  toast.warning('Batch schnellgereift', { description: 'Qualität leicht gesenkt' });
+                }
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="shop">
@@ -452,12 +463,6 @@ const Index = () => {
                 onBuySeed={handleBuySeed}
                 onBuyUpgrade={handleBuyUpgrade}
               />
-              <CuringPanel batches={state.curing?.batches || []} onRush={(id) => {
-                const ok = rushCuring(id);
-                if (ok) {
-                  toast.warning('Batch schnellgereift', { description: 'Qualität leicht gesenkt' });
-                }
-              }} />
             </div>
           </TabsContent>
 
