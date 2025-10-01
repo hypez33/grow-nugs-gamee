@@ -25,7 +25,15 @@ export const DealerCard = ({ dealer, relationship, playerReputation, isAvailable
       ? now >= dealer.availability.start && now <= dealer.availability.end
       : now >= dealer.availability.start || now <= dealer.availability.end;
   
-  const canTrade = isUnlocked && isTimeAvailable && isAvailable;
+  const canTrade = isUnlocked && isTimeAvailable;
+
+  console.log(`[Dealer] ${dealer.name}:`, {
+    unlockReputation: dealer.unlockReputation,
+    playerReputation,
+    isUnlocked,
+    isTimeAvailable,
+    canTrade
+  });
 
   return (
     <Card 

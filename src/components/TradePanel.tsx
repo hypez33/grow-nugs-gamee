@@ -107,20 +107,30 @@ export const TradePanel = ({
 
         {/* Dealer Network Tab */}
         <TabsContent value="dealers" className="space-y-4">
+          <div className="mb-4 p-3 bg-muted/20 rounded-lg text-sm">
+            <p className="text-muted-foreground">
+              💡 Tipp: Erhöhe deine Reputation durch erfolgreiche Deals, um mehr Dealer freizuschalten!
+            </p>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {DEALERS.map(dealer => {
-              const relationship = dealerRelationships.find(r => r.dealerId === dealer.id);
-              return (
-                <DealerCard
-                  key={dealer.id}
-                  dealer={dealer}
-                  relationship={relationship}
-                  playerReputation={reputation}
-                  isAvailable={true}
-                  onSelect={setSelectedDealer}
-                />
-              );
-            })}
+            {DEALERS
+              .sort((a, b) => a.unlockReputation - b.unlockReputation) // Sort by unlock reputation
+              .map(dealer => {
+                const relationship = dealerRelationships.find(r => r.dealerId === dealer.id);
+                const isUnlocked = reputation >= dealer.unlockReputation;
+                
+                return (
+                  <DealerCard
+                    key={dealer.id}
+                    dealer={dealer}
+                    relationship={relationship}
+                    playerReputation={reputation}
+                    isAvailable={isUnlocked}
+                    onSelect={setSelectedDealer}
+                  />
+                );
+              })}
           </div>
         </TabsContent>
 
