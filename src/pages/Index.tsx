@@ -414,12 +414,26 @@ const Index = () => {
 
   // Automation checks - runs every 5 seconds
   useEffect(() => {
+    console.log('[Automation] Effect running, slotAutomation state:', slotAutomation);
+    
     const interval = setInterval(() => {
+      console.log('[Automation] Checking all slots...');
+      
       state.slots.forEach((plant, slotIndex) => {
-        if (!plant) return;
+        if (!plant) {
+          console.log(`[Automation] Slot ${slotIndex} is empty, skipping`);
+          return;
+        }
         
         const slotAuto = slotAutomation[slotIndex];
-        if (!slotAuto || !slotAuto.isAutomated) return;
+        console.log(`[Automation] Slot ${slotIndex} automation state:`, slotAuto);
+        
+        if (!slotAuto || !slotAuto.isAutomated) {
+          console.log(`[Automation] Slot ${slotIndex} not automated, skipping`);
+          return;
+        }
+
+        console.log(`[Automation] Slot ${slotIndex} is automated, running checks...`);
 
         const currentPhase = logic.getCurrentPhase(plant);
         const timeMultiplier = logic.getTimeMultiplier(plant.strainId);

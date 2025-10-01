@@ -26,10 +26,21 @@ export const useAutomation = (
     slotIndex: number,
     automation: AutomationState
   ): boolean => {
-    if (!automation.isAutomated || !automation.assignedEmployeeId) return false;
+    console.log(`[Automation] Checking auto-water for slot ${slotIndex}:`, {
+      isAutomated: automation.isAutomated,
+      assignedEmployeeId: automation.assignedEmployeeId
+    });
+
+    if (!automation.isAutomated || !automation.assignedEmployeeId) {
+      console.log(`[Automation] Auto-water skipped: not automated or no employee`);
+      return false;
+    }
     
     const employee = getEmployee(automation.assignedEmployeeId);
+    console.log(`[Automation] Employee found:`, employee);
+    
     if (!employee || (employee.specialization !== 'watering' && employee.specialization !== 'all')) {
+      console.log(`[Automation] Auto-water skipped: employee not found or wrong specialization`);
       return false;
     }
 
@@ -37,8 +48,15 @@ export const useAutomation = (
     const timeSinceLastWater = now - plant.modifiers.lastWaterTime;
     const waterCooldown = 15000; // 15 seconds
 
+    console.log(`[Automation] Water cooldown check:`, {
+      timeSinceLastWater,
+      waterCooldown,
+      ready: timeSinceLastWater >= waterCooldown
+    });
+
     // Auto-water when cooldown is up
     if (timeSinceLastWater >= waterCooldown) {
+      console.log(`[Automation] ✅ Auto-watering slot ${slotIndex}`);
       const skillBonus = (employee.efficiency - 1.0) * 0.1; // Efficiency bonus
       onWater(slotIndex, skillBonus);
       return true;
