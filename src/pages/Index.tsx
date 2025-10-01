@@ -71,7 +71,10 @@ const Index = () => {
     updateSettings,
     applyTraining,
     startResearch,
-    cancelResearch
+    cancelResearch,
+    hireEmployee,
+    assignEmployee,
+    boostPlantGrowth,
   } = useGameState();
 
   const logic = usePlantLogic(state.upgrades, state.event?.effects?.growthMultiplier ?? 1, state.breeding.customStrains);
@@ -287,6 +290,40 @@ const Index = () => {
     }
   };
 
+  const handleHireEmployee = (employeeId: string) => {
+    const employee = state.employees.find(e => e === employeeId);
+    if (employee) {
+      toast.error('Mitarbeiter bereits angestellt!');
+      return;
+    }
+
+    // Find employee data
+    const employeeData = state.employees.find(e => e === employeeId);
+    if (!employeeData) return;
+
+    if (hireEmployee(employeeId)) {
+      toast.success('Mitarbeiter angestellt!', {
+        description: `Du hast einen neuen Mitarbeiter eingestellt`
+      });
+    } else {
+      toast.error('Fehler beim Einstellen!');
+    }
+  };
+
+  const handleClickBoost = (slotIndex: number, seconds: number) => {
+    if (boostPlantGrowth(slotIndex, seconds)) {
+      toast.success(`Wachstum beschleunigt!`, {
+        description: `+${seconds} Sekunden`,
+        duration: 1000
+      });
+    } else {
+      toast.warning('Maximale Boosts erreicht!', {
+        description: 'Diese Pflanze hat bereits das Maximum erreicht',
+        duration: 2000
+      });
+    }
+  };
+
   const handleBuyUpgrade = (upgradeId: string) => {
     const upgrade = UPGRADES.find((u) => u.id === upgradeId);
     if (!upgrade) return;
@@ -453,12 +490,15 @@ const Index = () => {
                   upgrades={state.upgrades}
                   pests={state.pests.infestations}
                   customStrains={state.breeding.customStrains}
+                  employees={state.employees}
                   onPlant={handlePlantClick}
                   onWater={handleWater}
                   onFertilize={handleFertilize}
                   onHarvest={handleHarvest}
                   onUpdate={handleUpdate}
                   onTraining={handleTraining}
+                  onAssignEmployee={assignEmployee}
+                  onClickBoost={handleClickBoost}
                   perfectWindowMs={state.event?.id === 'festival' ? 4000 : state.event?.id === 'cosmic-alignment' ? 3500 : state.event?.id === 'mystic-fog' ? 1500 : 2500}
                 />
               ))}
@@ -490,8 +530,10 @@ const Index = () => {
                 nugs={state.nugs}
                 upgrades={state.upgrades}
                 customStrains={state.breeding.customStrains}
+                employees={state.employees}
                 onBuySeed={handleBuySeed}
                 onBuyUpgrade={handleBuyUpgrade}
+                onHireEmployee={handleHireEmployee}
               />
             </div>
           </TabsContent>

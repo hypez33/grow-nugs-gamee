@@ -57,12 +57,15 @@ export const PlantSlot = ({
   upgrades,
   pests,
   customStrains = [],
+  employees = [],
   onPlant,
   onWater,
   onFertilize,
   onHarvest,
   onUpdate,
   onTraining,
+  onAssignEmployee,
+  onClickBoost,
   perfectWindowMs = 2500
 }: PlantSlotProps) => {
   const logic = usePlantLogic(upgrades, 1, customStrains);
@@ -72,6 +75,9 @@ export const PlantSlot = ({
   const [slider, setSlider] = useState(0);
   const [dir, setDir] = useState(1);
   const [droplets, setDroplets] = useState<{id:number; left:number;}[]>([]);
+  const [clickCooldown, setClickCooldown] = useState(false);
+  const [particles, setParticles] = useState<Array<{id: number; x: number; y: number}>>([]);
+  const [boostText, setBoostText] = useState<{id: number; text: string; x: number; y: number} | null>(null);
 
   useEffect(() => {
     if (!plant) return;
@@ -164,10 +170,81 @@ export const PlantSlot = ({
   const waterLevel = Math.max(0, Math.min(100, Math.round((waterRemaining / (waterTotal || 1)) * 100)));
   const waterSecs = Math.ceil(waterRemaining / 1000);
 
+  // Click boost handler
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!plant || isHarvestReady || clickCooldown) return;
+    
+    const currentBoosts = plant.clickBoosts || 0;
+    const maxBoosts = 50;
+    
+    if (currentBoosts >= maxBoosts) {
+      return; // Max boosts reached
+    }
+
+    // Calculate boost (diminishing returns)
+    const boostSeconds = currentBoosts < 3 ? 5 : currentBoosts < 6 ? 3 : currentBoosts < 10 ? 2 : 1;
+    
+    if (onClickBoost) {
+      onClickBoost(slotIndex, boostSeconds);
+      
+      // Set cooldown
+      setClickCooldown(true);
+      setTimeout(() => setClickCooldown(false), 1000);
+
+      // Get click position
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Create particles
+      const newParticles = Array.from({ length: 8 }, (_, i) => ({
+        id: Date.now() + i,
+        x,
+        y,
+      }));
+      setParticles(newParticles);
+      setTimeout(() => setParticles([]), 800);
+
+      // Show boost text
+      setBoostText({ id: Date.now(), text: `+${boostSeconds}s`, x, y });
+      setTimeout(() => setBoostText(null), 1000);
+    }
+  };
+
   return (
-    <Card className={`plant-card p-4 bg-card/80 backdrop-blur border-border overflow-hidden relative ${isHealthy ? 'healthy-plant' : ''} ${hasEnvironmentStress || hasWaterStress ? 'stress-indicator' : ''}`}>
-      {/* Phase Image */}
-      <div className="relative h-48 mb-4 rounded-lg overflow-hidden bg-muted/20">
+    <Card className={`plant-card p-4 bg-card/80 backdrop-blur border-border overflow-hidden relative ${isHealthy ? 'healthy-plant' : ''} ${hasEnvironmentStress || hasWaterStress ? 'stress-indicator' : ''} ${!isHarvestReady && plant ? 'clickable-card' : ''}`}>
+      {/* Particles */}
+      {particles.map((particle, i) => (
+        <div
+          key={particle.id}
+          className="sparkle-particle"
+          style={{
+            left: particle.x,
+            top: particle.y,
+            '--tx': `${Math.cos((i / particles.length) * Math.PI * 2) * 60}px`,
+            '--ty': `${Math.sin((i / particles.length) * Math.PI * 2) * 60}px`,
+          } as React.CSSProperties}
+        />
+      ))}
+      
+      {/* Boost text */}
+      {boostText && (
+        <div
+          className="boost-text"
+          style={{
+            left: boostText.x,
+            top: boostText.y,
+          }}
+        >
+          {boostText.text}
+        </div>
+      )}
+
+      {/* Phase Image - Clickable */}
+      <div 
+        className="relative h-48 mb-4 rounded-lg overflow-hidden bg-muted/20 cursor-pointer"
+        onClick={handleCardClick}
+      >
         <img
           src={PHASE_IMAGES[plant.phaseIndex]}
           alt={currentPhase.name}
@@ -221,8 +298,10 @@ export const PlantSlot = ({
           </p>
         </div>
         <div className="bg-muted/30 rounded p-2">
-          <p className="text-muted-foreground">Erde</p>
-          <p className="font-semibold capitalize">{plant.modifiers.soilType}</p>
+          <p className="text-muted-foreground">Click Boosts</p>
+          <p className="font-semibold text-accent">
+            {plant.clickBoosts || 0}s / 50s
+          </p>
         </div>
       </div>
 
