@@ -5,11 +5,12 @@ import { Progress } from '@/components/ui/progress';
 import { Plant, PestInfestation } from '@/hooks/useGameState';
 import { usePlantLogic } from '@/hooks/usePlantLogic';
 import { PHASES } from '@/data/phases';
-import { Droplets, Sprout, Sparkles, Bug, AlertTriangle, Gauge, Wind } from 'lucide-react';
+import { Droplets, Sprout, Sparkles, Bug, AlertTriangle, Gauge, Wind, Thermometer, AlertOctagon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { EnvironmentState } from '@/data/environment';
 import { PESTS } from '@/data/pests';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // Import phase images
 import germinationImg from '@/assets/phases/germination.png';
@@ -107,12 +108,12 @@ export const PlantSlot = ({
 
   if (!plant) {
     return (
-      <Card className="p-6 bg-card/50 backdrop-blur border-border hover:border-primary/50 transition-all cursor-pointer group">
+      <Card className="plant-card p-6 bg-card/50 backdrop-blur border-border hover:border-primary/50 transition-all cursor-pointer group">
         <div
           onClick={() => onPlant(slotIndex)}
           className="flex flex-col items-center justify-center h-64 text-muted-foreground group-hover:text-primary transition-colors"
         >
-          <Sprout className="w-12 h-12 mb-2" />
+          <Sprout className="w-12 h-12 mb-2 group-hover:scale-110 transition-transform" />
           <p className="text-sm">Leerer Slot</p>
           <p className="text-xs mt-1">Klicke zum Pflanzen</p>
         </div>
@@ -132,6 +133,20 @@ export const PlantSlot = ({
   const isHarvestReady = plant.phaseIndex === PHASES.length - 1 && progress >= 100;
   const waterAction = logic.canWater(plant, nugs);
   const fertAction = logic.canFertilize(plant, nugs);
+  
+  // Calculate stress levels
+  const now = Date.now();
+  const timeSinceLastWater = now - plant.modifiers.lastWaterTime;
+  const hasWaterStress = timeSinceLastWater > 30000; // 30 seconds without water
+  
+  const phOptimal = plant.environment.ph >= 6.0 && plant.environment.ph <= 6.5;
+  const ecOptimal = plant.environment.ec >= 1.2 && plant.environment.ec <= 1.8;
+  const tempOptimal = plant.environment.temperature >= 20 && plant.environment.temperature <= 26;
+  const humidityOptimal = plant.environment.humidity >= 50 && plant.environment.humidity <= 65;
+  
+  const hasEnvironmentStress = !phOptimal || !ecOptimal || !tempOptimal || !humidityOptimal;
+  const isHealthy = !hasWaterStress && !hasEnvironmentStress;
+  
   const waterTotal = waterAction.cooldownTotalMs ?? 15000;
   const waterRemaining = Math.max(0, waterAction.cooldownRemainingMs ?? 0);
   const windowMs = perfectWindowMs;
@@ -140,18 +155,41 @@ export const PlantSlot = ({
   const waterSecs = Math.ceil(waterRemaining / 1000);
 
   return (
-    <Card className="p-4 bg-card/80 backdrop-blur border-border overflow-hidden relative">
+    <Card className={`plant-card p-4 bg-card/80 backdrop-blur border-border overflow-hidden relative ${isHealthy ? 'healthy-plant' : ''} ${hasEnvironmentStress || hasWaterStress ? 'stress-indicator' : ''}`}>
       {/* Phase Image */}
       <div className="relative h-48 mb-4 rounded-lg overflow-hidden bg-muted/20">
         <img
           src={PHASE_IMAGES[plant.phaseIndex]}
           alt={currentPhase.name}
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover transition-all ${isHealthy ? '' : 'brightness-75'}`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent" />
         <div className="absolute bottom-2 left-2 right-2">
-          <h3 className="font-bold text-foreground">{strain.name}</h3>
-          <p className="text-sm text-muted-foreground">{currentPhase.name}</p>
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <h3 className="font-bold text-foreground flex items-center gap-2">
+                <span className="float-animation inline-block">{strain.name}</span>
+                {(hasWaterStress || hasEnvironmentStress) && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <AlertOctagon className="h-5 w-5 text-destructive animate-pulse" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-sm font-semibold">Pflanze unter Stress!</p>
+                        {hasWaterStress && <p className="text-xs">• Wassermangel</p>}
+                        {!phOptimal && <p className="text-xs">• pH nicht optimal (6.0-6.5)</p>}
+                        {!ecOptimal && <p className="text-xs">• EC nicht optimal (1.2-1.8)</p>}
+                        {!tempOptimal && <p className="text-xs">• Temperatur nicht optimal (20-26°C)</p>}
+                        {!humidityOptimal && <p className="text-xs">• Luftfeuchtigkeit nicht optimal (50-65%)</p>}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </h3>
+              <p className="text-sm text-muted-foreground">{currentPhase.name}</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -203,23 +241,76 @@ export const PlantSlot = ({
             </div>
           )}
 
-          {/* Environment Stats */}
+          {/* Environment Stats with warning indicators */}
           {plant.environment && (
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-muted/20 rounded p-2 flex items-center gap-2">
-                <Gauge className="w-3 h-3 text-muted-foreground" />
-                <div>
-                  <p className="text-muted-foreground">pH / EC</p>
-                  <p className="font-semibold">{plant.environment.ph.toFixed(1)} / {plant.environment.ec.toFixed(1)}</p>
-                </div>
-              </div>
-              <div className="bg-muted/20 rounded p-2 flex items-center gap-2">
-                <Wind className="w-3 h-3 text-muted-foreground" />
-                <div>
-                  <p className="text-muted-foreground">Temp / Luftf.</p>
-                  <p className="font-semibold">{plant.environment.temperature.toFixed(1)}°C / {plant.environment.humidity.toFixed(0)}%</p>
-                </div>
-              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className={`rounded p-2 flex items-center gap-2 transition-all ${!phOptimal ? 'stat-warning' : 'bg-muted/20 hover:bg-accent'}`}>
+                      <Gauge className="w-3 h-3" />
+                      <div>
+                        <p className="text-xs opacity-80">pH</p>
+                        <p className="font-semibold">{plant.environment.ph.toFixed(1)}</p>
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Optimal: 6.0-6.5</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className={`rounded p-2 flex items-center gap-2 transition-all ${!ecOptimal ? 'stat-warning' : 'bg-muted/20 hover:bg-accent'}`}>
+                      <Gauge className="w-3 h-3" />
+                      <div>
+                        <p className="text-xs opacity-80">EC</p>
+                        <p className="font-semibold">{plant.environment.ec.toFixed(1)}</p>
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Optimal: 1.2-1.8</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className={`rounded p-2 flex items-center gap-2 transition-all ${!humidityOptimal ? 'stat-warning' : 'bg-muted/20 hover:bg-accent'}`}>
+                      <Wind className="w-3 h-3" />
+                      <div>
+                        <p className="text-xs opacity-80">Luftf.</p>
+                        <p className="font-semibold">{plant.environment.humidity.toFixed(0)}%</p>
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Optimal: 50-65%</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className={`rounded p-2 flex items-center gap-2 transition-all ${!tempOptimal ? 'stat-warning' : 'bg-muted/20 hover:bg-accent'}`}>
+                      <Thermometer className="w-3 h-3" />
+                      <div>
+                        <p className="text-xs opacity-80">Temp</p>
+                        <p className="font-semibold">{plant.environment.temperature.toFixed(1)}°C</p>
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Optimal: 20-26°C</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           )}
         </div>
@@ -252,7 +343,7 @@ export const PlantSlot = ({
       {isHarvestReady ? (
         <Button
           onClick={() => onHarvest(slotIndex)}
-          className="w-full bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70"
+          className="w-full bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70 hover:scale-105 transition-transform"
         >
           <Sparkles className="w-4 h-4 mr-2" />
           Ernten!
@@ -270,8 +361,9 @@ export const PlantSlot = ({
             variant="secondary"
             size="sm"
             className={cn(
-              "relative",
-              currentPhase.waterRecommended && "ring-2 ring-primary/50"
+              "relative hover:scale-105 transition-transform",
+              currentPhase.waterRecommended && "ring-2 ring-primary/50",
+              hasWaterStress && "ring-2 ring-destructive/50 animate-pulse"
             )}
           >
             <Droplets className="w-4 h-4 mr-1" />
@@ -284,7 +376,7 @@ export const PlantSlot = ({
             variant="secondary"
             size="sm"
             className={cn(
-              "relative",
+              "relative hover:scale-105 transition-transform",
               currentPhase.fertilizerRecommended && "ring-2 ring-primary/50"
             )}
           >

@@ -719,17 +719,25 @@ export const useGameState = () => {
     }));
   }, []);
 
-  // Environment functions
+  // Environment functions - harder to adjust with resistance
   const adjustEnvironment = useCallback((param: keyof EnvironmentState, value: number) => {
     setState(prev => {
-      // Adjust all plant environments
+      // Adjust all plant environments with resistance
       const newSlots = prev.slots.map(plant => {
         if (!plant) return plant;
+        
+        const currentValue = plant.environment[param as keyof PlantEnvironment];
+        if (typeof currentValue !== 'number') return plant;
+        
+        const difference = value - currentValue;
+        // Only 60% effective + random variance - harder to control
+        const adjustment = difference * 0.6 + (Math.random() - 0.5) * 0.2;
+        
         return {
           ...plant,
           environment: {
             ...plant.environment,
-            [param]: value
+            [param]: currentValue + adjustment
           }
         };
       });
@@ -863,7 +871,7 @@ export const useGameState = () => {
     return false;
   }, [state.nugs]);
 
-  // Drift environment values slowly over time
+  // Drift environment values slowly over time - stronger fluctuations
   const driftEnvironmentValues = useCallback(() => {
     setState(prev => {
       const newSlots = prev.slots.map(plant => {
@@ -872,10 +880,10 @@ export const useGameState = () => {
         return {
           ...plant,
           environment: {
-            ph: Math.max(5.5, Math.min(7.0, plant.environment.ph + (Math.random() - 0.5) * 0.1)),
-            ec: Math.max(0.8, Math.min(2.5, plant.environment.ec + (Math.random() - 0.5) * 0.08)),
-            humidity: Math.max(40, Math.min(80, plant.environment.humidity + (Math.random() - 0.5) * 2)),
-            temperature: Math.max(18, Math.min(30, plant.environment.temperature + (Math.random() - 0.5) * 0.8))
+            ph: Math.max(4.0, Math.min(8.0, plant.environment.ph + (Math.random() - 0.5) * 0.3)),
+            ec: Math.max(0.5, Math.min(3.0, plant.environment.ec + (Math.random() - 0.5) * 0.15)),
+            humidity: Math.max(30, Math.min(80, plant.environment.humidity + (Math.random() - 0.5) * 5)),
+            temperature: Math.max(15, Math.min(35, plant.environment.temperature + (Math.random() - 0.5) * 2.5))
           }
         };
       });
