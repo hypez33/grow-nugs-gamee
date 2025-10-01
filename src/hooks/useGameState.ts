@@ -228,7 +228,13 @@ export const useGameState = () => {
           stats: { ...INITIAL_STATE.stats, ...(parsed?.stats || {}) },
           trade: { ...INITIAL_STATE.trade, ...(parsed?.trade || {}) },
           quests: parsed?.quests || DEFAULT_QUESTS,
-          breeding: { ...INITIAL_STATE.breeding, ...(parsed?.breeding || {}) },
+          breeding: { 
+            ...INITIAL_STATE.breeding, 
+            ...(parsed?.breeding || {}),
+            customStrains: parsed?.breeding?.customStrains || [],
+            discoveredStrains: parsed?.breeding?.discoveredStrains || INITIAL_STATE.breeding.discoveredStrains,
+            motherPlants: parsed?.breeding?.motherPlants || []
+          },
           environment: { ...INITIAL_STATE.environment, ...(parsed?.environment || {}) },
           envUpgrades: { ...INITIAL_STATE.envUpgrades, ...(parsed?.envUpgrades || {}) },
           pests: { ...INITIAL_STATE.pests, ...(parsed?.pests || {}) },
@@ -657,7 +663,7 @@ export const useGameState = () => {
     
     setState(prev => {
       // Find parent strains (can be base strains or custom)
-      const allStrains = [...STRAINS, ...prev.breeding.customStrains];
+      const allStrains = [...STRAINS, ...(prev.breeding.customStrains || [])];
       const p1 = allStrains.find(s => s.id === parent1Id);
       const p2 = allStrains.find(s => s.id === parent2Id);
       
@@ -670,8 +676,8 @@ export const useGameState = () => {
         ...prev,
         breeding: {
           ...prev.breeding,
-          customStrains: [...prev.breeding.customStrains, newStrain],
-          discoveredStrains: [...prev.breeding.discoveredStrains, newStrain.id]
+          customStrains: [...(prev.breeding.customStrains || []), newStrain],
+          discoveredStrains: [...(prev.breeding.discoveredStrains || []), newStrain.id]
         }
       };
     });
@@ -685,7 +691,7 @@ export const useGameState = () => {
       breeding: {
         ...prev.breeding,
         motherPlants: [
-          ...prev.breeding.motherPlants,
+          ...(prev.breeding.motherPlants || []),
           {
             id: `mother-${Date.now()}`,
             strainId,
