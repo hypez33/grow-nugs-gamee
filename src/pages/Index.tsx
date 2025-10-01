@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGameState } from '@/hooks/useGameState';
 import { UPGRADES, getUpgradePrice } from '@/data/upgrades';
 import { ENV_UPGRADES } from '@/data/environment';
+import { TRAINING_TECHNIQUES } from '@/data/training';
 import { usePlantLogic } from '@/hooks/usePlantLogic';
 import { PlantSlot } from '@/components/PlantSlot';
 import { ShopModal } from '@/components/ShopModal';
@@ -253,8 +254,7 @@ const Index = () => {
   };
 
   const handleTraining = (slotIndex: number, techniqueId: string, successLevel: number) => {
-    const { TRAINING_TECHNIQUES } = require('@/data/training');
-    const technique = TRAINING_TECHNIQUES.find((t: any) => t.id === techniqueId);
+    const technique = TRAINING_TECHNIQUES.find(t => t.id === techniqueId);
     if (!technique) return;
 
     if (applyTraining(slotIndex, techniqueId, successLevel, technique.cost)) {
