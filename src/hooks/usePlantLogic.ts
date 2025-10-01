@@ -3,6 +3,7 @@ import { Plant, PlantModifiers } from './useGameState';
 import { PHASES } from '@/data/phases';
 import { STRAINS, getRarityMultiplier } from '@/data/strains';
 import { ENHANCERS } from '@/data/enhancers';
+import { CustomStrain } from '@/data/breeding';
 
 const WATER_COST = 5;
 const FERTILIZER_COST = 15;
@@ -17,10 +18,11 @@ export interface PlantAction {
   cooldownTotalMs?: number;
 }
 
-export const usePlantLogic = (upgrades: Record<string, number>, growthMultiplier: number = 1) => {
+export const usePlantLogic = (upgrades: Record<string, number>, growthMultiplier: number = 1, customStrains: CustomStrain[] = []) => {
   const getStrain = useCallback((strainId: string) => {
-    return STRAINS.find(s => s.id === strainId);
-  }, []);
+    const allStrains = [...STRAINS, ...customStrains];
+    return allStrains.find(s => s.id === strainId);
+  }, [customStrains]);
 
   const getCurrentPhase = useCallback((plant: Plant) => {
     return PHASES[plant.phaseIndex];

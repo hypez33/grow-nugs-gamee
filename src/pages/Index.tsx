@@ -63,7 +63,7 @@ const Index = () => {
     checkForPests
   } = useGameState();
 
-  const logic = usePlantLogic(state.upgrades, state.event?.effects?.growthMultiplier ?? 1);
+  const logic = usePlantLogic(state.upgrades, state.event?.effects?.growthMultiplier ?? 1, state.breeding.customStrains);
 
   const [shopOpen, setShopOpen] = useState(false);
   const [plantingSlot, setPlantingSlot] = useState<number | null>(null);
@@ -382,6 +382,7 @@ const Index = () => {
               <ShopContent
                 nugs={state.nugs}
                 upgrades={state.upgrades}
+                customStrains={state.breeding.customStrains}
                 onBuySeed={handleBuySeed}
                 onBuyUpgrade={handleBuyUpgrade}
               />

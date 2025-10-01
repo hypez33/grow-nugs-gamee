@@ -69,18 +69,18 @@ export const BreedingLab = ({
           <div className="space-y-2">
             <label className="text-sm font-medium">Elternteil 1</label>
             <div className="grid grid-cols-2 gap-2">
-              {availableStrains.map(strain => (
+               {availableStrains.map(strain => (
                 <Button
                   key={strain.id}
                   size="sm"
                   variant={selectedParent1 === strain.id ? "default" : "outline"}
                   onClick={() => setSelectedParent1(strain.id)}
                   className={cn(
-                    "transition-all",
+                    "transition-all text-xs",
                     selectedParent1 === strain.id && "ring-2 ring-primary"
                   )}
                 >
-                  {strain.name}
+                  <span className="truncate">{strain.name}</span>
                 </Button>
               ))}
             </div>
@@ -107,11 +107,11 @@ export const BreedingLab = ({
                   variant={selectedParent2 === strain.id ? "default" : "outline"}
                   onClick={() => setSelectedParent2(strain.id)}
                   className={cn(
-                    "transition-all",
+                    "transition-all text-xs",
                     selectedParent2 === strain.id && "ring-2 ring-primary"
                   )}
                 >
-                  {strain.name}
+                  <span className="truncate">{strain.name}</span>
                 </Button>
               ))}
             </div>
