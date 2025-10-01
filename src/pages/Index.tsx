@@ -60,7 +60,8 @@ const Index = () => {
     toggleLightCycle,
     buyEnvUpgrade,
     treatInfestation,
-    checkForPests
+    checkForPests,
+    driftEnvironmentValues
   } = useGameState();
 
   const logic = usePlantLogic(state.upgrades, state.event?.effects?.growthMultiplier ?? 1, state.breeding.customStrains);
@@ -103,6 +104,14 @@ const Index = () => {
     }, 60000); // Check every minute
     return () => clearInterval(t);
   }, [checkForPests]);
+
+  // Environment drift
+  useEffect(() => {
+    const t = setInterval(() => {
+      driftEnvironmentValues();
+    }, 30000); // Drift every 30 seconds
+    return () => clearInterval(t);
+  }, [driftEnvironmentValues]);
 
   const handlePlantClick = (slotIndex: number) => {
     setPlantingSlot(slotIndex);
@@ -150,7 +159,16 @@ const Index = () => {
     if (spendNugs(action.cost)) {
       const chainBonus = Math.min(0.03, Math.floor((state.stats?.waterChain || 0) / 3) * 0.01);
       const newModifiers = logic.applyWater(plant, isPerfect, skillBonus + chainBonus);
-      updatePlant(slotIndex, { modifiers: newModifiers });
+      
+      // Umgebungswerte schwanken nach dem Gießen
+      const newEnvironment = {
+        ph: Math.max(5.5, Math.min(7.0, plant.environment.ph + (Math.random() - 0.5) * 0.3)),
+        ec: Math.max(0.8, Math.min(2.5, plant.environment.ec + (Math.random() - 0.5) * 0.2)),
+        humidity: Math.max(40, Math.min(80, plant.environment.humidity + (Math.random() - 0.5) * 5)),
+        temperature: Math.max(18, Math.min(30, plant.environment.temperature + (Math.random() - 0.5) * 1.5))
+      };
+      
+      updatePlant(slotIndex, { modifiers: newModifiers, environment: newEnvironment });
       recordWaterAction(1);
       recordPerfectWater(isPerfect);
       toast.success(isPerfect ? 'Perfektes Gießen!' : 'Pflanze gegossen', {
@@ -358,7 +376,6 @@ const Index = () => {
                   slotIndex={index}
                   nugs={state.nugs}
                   upgrades={state.upgrades}
-                  environment={state.environment}
                   pests={state.pests.infestations}
                   onPlant={handlePlantClick}
                   onWater={handleWater}

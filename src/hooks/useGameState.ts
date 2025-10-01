@@ -17,6 +17,13 @@ export interface PlantModifiers {
   appliedEnhancers: string[]; // PGR, terpen spray, etc.
 }
 
+export interface PlantEnvironment {
+  ph: number;
+  ec: number;
+  humidity: number;
+  temperature: number;
+}
+
 export interface Plant {
   id: string;
   strainId: string;
@@ -24,6 +31,7 @@ export interface Plant {
   elapsedInPhase: number;
   plantedAt: number;
   modifiers: PlantModifiers;
+  environment: PlantEnvironment;
 }
 
 export interface MotherPlant {
@@ -300,6 +308,12 @@ export const useGameState = () => {
           qualityMultiplier: 1.0,
           pestInfestationIds: [],
           appliedEnhancers: []
+        },
+        environment: {
+          ph: 6.0 + (Math.random() - 0.5) * 0.4,
+          ec: 1.2 + (Math.random() - 0.5) * 0.4,
+          humidity: 60 + (Math.random() - 0.5) * 10,
+          temperature: 24 + (Math.random() - 0.5) * 2
         }
       };
       return { ...prev, slots: newSlots };
@@ -834,6 +848,27 @@ export const useGameState = () => {
     return false;
   }, [state.nugs]);
 
+  // Drift environment values slowly over time
+  const driftEnvironmentValues = useCallback(() => {
+    setState(prev => {
+      const newSlots = prev.slots.map(plant => {
+        if (!plant) return plant;
+        
+        return {
+          ...plant,
+          environment: {
+            ph: Math.max(5.5, Math.min(7.0, plant.environment.ph + (Math.random() - 0.5) * 0.1)),
+            ec: Math.max(0.8, Math.min(2.5, plant.environment.ec + (Math.random() - 0.5) * 0.08)),
+            humidity: Math.max(40, Math.min(80, plant.environment.humidity + (Math.random() - 0.5) * 2)),
+            temperature: Math.max(18, Math.min(30, plant.environment.temperature + (Math.random() - 0.5) * 0.8))
+          }
+        };
+      });
+      
+      return { ...prev, slots: newSlots };
+    });
+  }, []);
+
   return {
     state,
     manualSave,
@@ -866,6 +901,7 @@ export const useGameState = () => {
     buyEnvUpgrade,
     treatInfestation,
     checkForPests,
-    applyEnhancer
+    applyEnhancer,
+    driftEnvironmentValues
   };
 };

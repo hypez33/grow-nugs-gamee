@@ -33,7 +33,6 @@ interface PlantSlotProps {
   slotIndex: number;
   nugs: number;
   upgrades: Record<string, number>;
-  environment?: EnvironmentState;
   pests?: PestInfestation[];
   onPlant: (slotIndex: number) => void;
   onWater: (slotIndex: number, skillBonus?: number) => void;
@@ -48,7 +47,6 @@ export const PlantSlot = ({
   slotIndex,
   nugs,
   upgrades,
-  environment,
   pests,
   onPlant,
   onWater,
@@ -181,7 +179,7 @@ export const PlantSlot = ({
       </div>
 
       {/* Environment & Pests Info */}
-      {(environment || (pests && pests.length > 0)) && (
+      {(plant.environment || (pests && pests.length > 0)) && (
         <div className="mb-4 space-y-2">
           {/* Pests Warning */}
           {pests && pests.filter(p => p.slotIndex === slotIndex && !p.treated).length > 0 && (
@@ -206,20 +204,20 @@ export const PlantSlot = ({
           )}
 
           {/* Environment Stats */}
-          {environment && (
+          {plant.environment && (
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="bg-muted/20 rounded p-2 flex items-center gap-2">
                 <Gauge className="w-3 h-3 text-muted-foreground" />
                 <div>
                   <p className="text-muted-foreground">pH / EC</p>
-                  <p className="font-semibold">{environment.ph.toFixed(1)} / {environment.ec.toFixed(1)}</p>
+                  <p className="font-semibold">{plant.environment.ph.toFixed(1)} / {plant.environment.ec.toFixed(1)}</p>
                 </div>
               </div>
               <div className="bg-muted/20 rounded p-2 flex items-center gap-2">
                 <Wind className="w-3 h-3 text-muted-foreground" />
                 <div>
-                  <p className="text-muted-foreground">Luftfeuchtigkeit</p>
-                  <p className="font-semibold">{environment.humidity.toFixed(0)}%</p>
+                  <p className="text-muted-foreground">Temp / Luftf.</p>
+                  <p className="font-semibold">{plant.environment.temperature.toFixed(1)}°C / {plant.environment.humidity.toFixed(0)}%</p>
                 </div>
               </div>
             </div>
