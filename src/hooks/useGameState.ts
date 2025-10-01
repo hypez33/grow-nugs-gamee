@@ -5,6 +5,9 @@ import { breedTwoStrains, CustomStrain } from '@/data/breeding';
 import { PESTS, TREATMENTS, getPestProtection } from '@/data/pests';
 import { ENHANCERS } from '@/data/enhancers';
 import { DealerRelationship, TradeContract } from '@/data/dealers';
+import { TerpeneProfile, calculateTerpeneModifiers, getDominantTerpenes } from '@/data/terpenes';
+import { MarketData, INITIAL_MARKET_DATA, MarketCondition, AICompetitor, AI_COMPETITORS, decayMarketSupply, simulateCompetitorActions, calculateDynamicPrice } from '@/data/market';
+import { ActiveResearch, calculateResearchPoints, getAvailableResearch, calculateResearchBonuses } from '@/data/research';
 
 export interface PlantModifiers {
   waterStacks: number;
@@ -21,6 +24,7 @@ export interface PlantModifiers {
     appliedAt: number;
     successLevel: number;
   }>;
+  terpeneProfile?: TerpeneProfile; // Terpene composition of this plant
 }
 
 export interface PlantEnvironment {
@@ -149,6 +153,17 @@ export interface GameState {
     infestations: PestInfestation[];
     lastCheckAt: number;
   };
+  market: {
+    data: Record<string, MarketData>;
+    activeConditions: MarketCondition[];
+    competitors: AICompetitor[];
+    lastUpdateAt: number;
+  };
+  research: {
+    points: number;
+    completedResearch: string[];
+    activeResearch: ActiveResearch | null;
+  };
 }
 
 const DEFAULT_QUESTS: Quest[] = [
@@ -231,6 +246,17 @@ const INITIAL_STATE: GameState = {
   pests: {
     infestations: [],
     lastCheckAt: Date.now()
+  },
+  market: {
+    data: INITIAL_MARKET_DATA,
+    activeConditions: [],
+    competitors: AI_COMPETITORS,
+    lastUpdateAt: Date.now()
+  },
+  research: {
+    points: 0,
+    completedResearch: [],
+    activeResearch: null
   }
 };
 
@@ -269,6 +295,20 @@ export const useGameState = () => {
           environment: { ...INITIAL_STATE.environment, ...(parsed?.environment || {}) },
           envUpgrades: { ...INITIAL_STATE.envUpgrades, ...(parsed?.envUpgrades || {}) },
           pests: { ...INITIAL_STATE.pests, ...(parsed?.pests || {}) },
+          market: { 
+            ...INITIAL_STATE.market, 
+            ...(parsed?.market || {}),
+            data: { ...INITIAL_MARKET_DATA, ...(parsed?.market?.data || {}) },
+            competitors: parsed?.market?.competitors || AI_COMPETITORS,
+            activeConditions: parsed?.market?.activeConditions || [],
+          },
+          research: {
+            ...INITIAL_STATE.research,
+            ...(parsed?.research || {}),
+            points: parsed?.research?.points || 0,
+            completedResearch: parsed?.research?.completedResearch || [],
+            activeResearch: parsed?.research?.activeResearch || null,
+          },
         } as GameState;
       } catch (e) {
         console.error('Failed to load save:', e);
@@ -1076,6 +1116,162 @@ export const useGameState = () => {
     });
   }, []);
 
+  // === MARKET SYSTEM ===
+  const updateMarketData = useCallback(() => {
+    setState(prev => {
+      let updatedData = decayMarketSupply(prev.market.data);
+      updatedData = simulateCompetitorActions(updatedData, prev.market.competitors);
+      
+      // Update market conditions duration
+      const activeConditions = prev.market.activeConditions
+        .map(c => ({ ...c, duration: c.duration - 1 }))
+        .filter(c => c.duration > 0);
+      
+      // 5% chance for new market event
+      if (Math.random() < 0.05 && activeConditions.length < 2) {
+        const { MARKET_CONDITIONS } = require('@/data/market');
+        const availableConditions = MARKET_CONDITIONS.filter(
+          mc => !activeConditions.find(ac => ac.id === mc.id)
+        );
+        if (availableConditions.length > 0) {
+          const newCondition = availableConditions[Math.floor(Math.random() * availableConditions.length)];
+          activeConditions.push({ ...newCondition });
+        }
+      }
+      
+      return {
+        ...prev,
+        market: {
+          ...prev.market,
+          data: updatedData,
+          activeConditions,
+          lastUpdateAt: Date.now()
+        }
+      };
+    });
+  }, []);
+
+  const getMarketPrice = useCallback((strainId: string, terpeneProfile: TerpeneProfile, quality: number): number => {
+    const marketData = state.market.data[strainId];
+    if (!marketData) return 10; // fallback
+    
+    return calculateDynamicPrice(marketData, terpeneProfile, quality, state.market.activeConditions);
+  }, [state.market]);
+
+  // === RESEARCH SYSTEM ===
+  const addResearchPoints = useCallback((amount: number) => {
+    setState(prev => ({
+      ...prev,
+      research: {
+        ...prev.research,
+        points: prev.research.points + amount
+      }
+    }));
+  }, []);
+
+  const startResearch = useCallback((nodeId: string): boolean => {
+    const availableNodes = getAvailableResearch(state.research.completedResearch);
+    const node = availableNodes.find(n => n.id === nodeId);
+    
+    if (!node || state.research.points < node.cost || state.research.activeResearch) {
+      return false;
+    }
+    
+    setState(prev => ({
+      ...prev,
+      research: {
+        ...prev.research,
+        points: prev.research.points - node.cost,
+        activeResearch: {
+          nodeId,
+          progress: 0,
+          startedAt: Date.now()
+        }
+      }
+    }));
+    
+    return true;
+  }, [state.research]);
+
+  const progressResearch = useCallback((progressAmount: number = 1) => {
+    setState(prev => {
+      if (!prev.research.activeResearch) return prev;
+      
+      const { RESEARCH_TREE } = require('@/data/research');
+      const node = RESEARCH_TREE.find((n: any) => n.id === prev.research.activeResearch?.nodeId);
+      if (!node) return prev;
+      
+      const newProgress = prev.research.activeResearch.progress + progressAmount;
+      
+      if (newProgress >= 100) {
+        // Research complete!
+        return {
+          ...prev,
+          research: {
+            ...prev.research,
+            completedResearch: [...prev.research.completedResearch, node.id],
+            activeResearch: null
+          }
+        };
+      }
+      
+      return {
+        ...prev,
+        research: {
+          ...prev.research,
+          activeResearch: {
+            ...prev.research.activeResearch,
+            progress: newProgress
+          }
+        }
+      };
+    });
+  }, []);
+
+  const cancelResearch = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      research: {
+        ...prev.research,
+        activeResearch: null
+      }
+    }));
+  }, []);
+
+  const getResearchBonuses = useCallback(() => {
+    return calculateResearchBonuses(state.research.completedResearch);
+  }, [state.research.completedResearch]);
+
+  // Update plant terpene profile based on environment
+  const updatePlantTerpenes = useCallback((slotIndex: number) => {
+    setState(prev => {
+      const plant = prev.slots[slotIndex];
+      if (!plant) return prev;
+      
+      const strain = [...STRAINS, ...prev.breeding.customStrains].find(s => s.id === plant.strainId);
+      if (!strain) return prev;
+      
+      const baseTerpenes = strain.terpeneProfile;
+      const modifiedTerpenes = calculateTerpeneModifiers(
+        baseTerpenes,
+        plant.environment.temperature,
+        plant.environment.humidity,
+        prev.environment.lightCycle === 'flower' ? 80 : 70
+      );
+      
+      const newSlots = [...prev.slots];
+      newSlots[slotIndex] = {
+        ...plant,
+        modifiers: {
+          ...plant.modifiers,
+          terpeneProfile: modifiedTerpenes
+        }
+      };
+      
+      return { ...prev, slots: newSlots };
+    });
+  }, []);
+
   return {
     state,
     manualSave,
@@ -1113,6 +1309,14 @@ export const useGameState = () => {
     applyEnhancer,
     applyTraining,
     driftEnvironmentValues,
-    updateSettings
+    updateSettings,
+    updateMarketData,
+    getMarketPrice,
+    addResearchPoints,
+    startResearch,
+    progressResearch,
+    cancelResearch,
+    getResearchBonuses,
+    updatePlantTerpenes
   };
 };

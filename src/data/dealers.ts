@@ -8,6 +8,7 @@ export interface Dealer {
   type: DealerType;
   reputation: number; // 0-100, affects unlock and prices
   preferredStrains?: string[];
+  preferredTerpenes?: string[]; // Preferred terpene IDs
   qualityRequirement: QualityRequirement;
   priceMultiplier: number;
   minQuantity: number;
@@ -60,6 +61,7 @@ export const DEALERS: Dealer[] = [
     avatar: '🧑',
     type: 'street',
     reputation: 0,
+    preferredTerpenes: ['myrcene', 'pinene'],
     qualityRequirement: 'C',
     priceMultiplier: 0.9,
     minQuantity: 10,
@@ -76,6 +78,7 @@ export const DEALERS: Dealer[] = [
     avatar: '👩',
     type: 'street',
     reputation: 0,
+    preferredTerpenes: ['limonene', 'caryophyllene'],
     qualityRequirement: 'B',
     priceMultiplier: 1.0,
     minQuantity: 20,
@@ -94,6 +97,7 @@ export const DEALERS: Dealer[] = [
     avatar: '🧔',
     type: 'middleman',
     reputation: 0,
+    preferredTerpenes: ['pinene', 'humulene'],
     qualityRequirement: 'B',
     priceMultiplier: 1.2,
     minQuantity: 50,
@@ -110,6 +114,7 @@ export const DEALERS: Dealer[] = [
     avatar: '🧕',
     type: 'middleman',
     reputation: 0,
+    preferredTerpenes: ['linalool', 'terpinolene'],
     qualityRequirement: 'A',
     priceMultiplier: 1.3,
     minQuantity: 80,
@@ -129,6 +134,7 @@ export const DEALERS: Dealer[] = [
     type: 'vip',
     reputation: 0,
     preferredStrains: ['green-gelato', 'do-si-dos'],
+    preferredTerpenes: ['limonene', 'caryophyllene', 'linalool'],
     qualityRequirement: 'A',
     priceMultiplier: 1.8,
     minQuantity: 100,
@@ -145,6 +151,7 @@ export const DEALERS: Dealer[] = [
     avatar: '👩‍💼',
     type: 'vip',
     reputation: 0,
+    preferredTerpenes: ['linalool', 'terpinolene', 'ocimene'],
     qualityRequirement: 'S',
     priceMultiplier: 2.2,
     minQuantity: 50,
@@ -163,6 +170,7 @@ export const DEALERS: Dealer[] = [
     avatar: '👴',
     type: 'wholesale',
     reputation: 0,
+    preferredTerpenes: ['myrcene', 'pinene'],
     qualityRequirement: 'B',
     priceMultiplier: 1.1,
     minQuantity: 300,
@@ -182,6 +190,7 @@ export const DEALERS: Dealer[] = [
     type: 'tourist',
     reputation: 0,
     preferredStrains: ['honey-cream', 'gelato-auto'],
+    preferredTerpenes: ['limonene', 'ocimene'],
     qualityRequirement: 'A',
     priceMultiplier: 2.0,
     minQuantity: 20,
@@ -200,6 +209,7 @@ export const DEALERS: Dealer[] = [
     avatar: '🏪',
     type: 'dispensary',
     reputation: 0,
+    preferredTerpenes: ['caryophyllene', 'linalool', 'humulene'],
     qualityRequirement: 'A',
     priceMultiplier: 1.4,
     minQuantity: 100,

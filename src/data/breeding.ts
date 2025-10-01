@@ -1,4 +1,6 @@
 // Breeding and genetics system
+import { TerpeneProfile } from './terpenes';
+
 export interface Phenotype {
   id: string;
   name: string;
@@ -30,6 +32,7 @@ export interface CustomStrain {
   nutrientSensitivity: number;
   seedPrice: number;
   description: string;
+  terpeneProfile: TerpeneProfile;
   generation: number; // Wie oft wurde gekreuzt
   parents?: [string, string];
   mutation?: Mutation; // Seltene Mutation mit extremen Boni
@@ -238,6 +241,15 @@ export const breedTwoStrains = (parent1: CustomStrain, parent2: CustomStrain): C
   
   const seedPrice = Math.round((parent1.seedPrice + parent2.seedPrice) / 2 * (mutation ? 2.0 : 1.2));
   
+  // Mix terpene profiles
+  const terpeneProfile: TerpeneProfile = {};
+  const allTerpenes = new Set([...Object.keys(parent1.terpeneProfile), ...Object.keys(parent2.terpeneProfile)]);
+  allTerpenes.forEach(terpene => {
+    const val1 = parent1.terpeneProfile[terpene] || 0;
+    const val2 = parent2.terpeneProfile[terpene] || 0;
+    terpeneProfile[terpene] = Math.round((val1 + val2) / 2 * (0.9 + Math.random() * 0.2));
+  });
+  
   return {
     id: `custom-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     name: mutation ? `${name} [${mutation.name}]` : name,
@@ -247,6 +259,7 @@ export const breedTwoStrains = (parent1: CustomStrain, parent2: CustomStrain): C
     waterTolerance,
     nutrientSensitivity,
     seedPrice,
+    terpeneProfile,
     description: mutation 
       ? `Gen ${generation} Hybrid mit MUTATION! ${mutation.description} | ${parent1.name} × ${parent2.name}`
       : `Gen ${generation} Hybrid: ${parent1.name} × ${parent2.name}`,
