@@ -76,18 +76,20 @@ export const STRAINS: Strain[] = [
   }
 ];
 
-export const getRarityColor = (rarity: Strain['rarity']): string => {
+export const getRarityColor = (rarity: 'common' | 'rare' | 'epic' | 'legendary'): string => {
   switch (rarity) {
     case 'common': return 'text-muted-foreground';
     case 'rare': return 'text-info';
     case 'epic': return 'text-accent';
+    case 'legendary': return 'text-yellow-500 animate-pulse';
   }
 };
 
-export const getRarityMultiplier = (rarity: Strain['rarity']): number => {
+export const getRarityMultiplier = (rarity: 'common' | 'rare' | 'epic' | 'legendary'): number => {
   switch (rarity) {
     case 'common': return 1.0;
     case 'rare': return 1.3;
     case 'epic': return 1.6;
+    case 'legendary': return 2.5;
   }
 };

@@ -473,11 +473,23 @@ const Index = () => {
               discoveredStrains={state.breeding.discoveredStrains}
               customStrains={state.breeding.customStrains}
               onBreed={(p1, p2) => {
-                const success = breedStrains(p1, p2);
-                toast[success ? 'success' : 'warning'](
-                  success ? 'Neue Sorte entdeckt!' : 'Kreuzung fehlgeschlagen',
-                  { description: success ? 'Check deine verfügbaren Strains' : 'Versuche es erneut' }
-                );
+                const newStrain = breedStrains(p1, p2);
+                if (newStrain) {
+                  if (newStrain.mutation) {
+                    toast.success('🎉 MUTATION ENTDECKT! 🎉', {
+                      description: `${newStrain.mutation.name} - ${newStrain.mutation.description}`,
+                      duration: 8000
+                    });
+                  } else {
+                    toast.success('Neue Sorte entdeckt!', {
+                      description: `${newStrain.name} (Gen ${newStrain.generation})`
+                    });
+                  }
+                } else {
+                  toast.warning('Kreuzung fehlgeschlagen', {
+                    description: 'Versuche es erneut'
+                  });
+                }
               }}
               onCreateMother={createMotherPlant}
               onClone={(motherId, slotIdx) => toast.info('Klon-System coming soon')}

@@ -218,6 +218,87 @@ export const BreedingLab = ({
         )}
       </Card>
 
+      {/* Custom Strains Collection */}
+      {customStrains && customStrains.length > 0 && (
+        <Card className="p-6 bg-gradient-to-br from-accent/5 to-primary/5 border-accent/20 animate-fade-in">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 rounded-lg bg-accent/10">
+              <Sparkles className="w-6 h-6 text-accent animate-pulse" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold">Eigene Kreuzungen</h3>
+              <p className="text-sm text-muted-foreground">Deine gezüchteten Strains</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {customStrains.map(strain => (
+              <Card 
+                key={strain.id}
+                className={cn(
+                  "p-4 transition-all hover:scale-[1.02]",
+                  strain.mutation && "ring-2 ring-yellow-500 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 animate-pulse"
+                )}
+              >
+                <div className="space-y-2">
+                  <div>
+                    <div className="font-bold text-sm line-clamp-2">{strain.name}</div>
+                    <div className="flex gap-1 mt-1 flex-wrap">
+                      <Badge 
+                        variant="outline" 
+                        className={cn(
+                          "text-xs",
+                          strain.rarity === 'legendary' && "text-yellow-500 border-yellow-500 animate-pulse",
+                          strain.rarity === 'epic' && "text-accent border-accent",
+                          strain.rarity === 'rare' && "text-primary border-primary"
+                        )}
+                      >
+                        {strain.rarity}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        Gen {strain.generation}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {strain.mutation && (
+                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded p-2 space-y-1">
+                      <div className="flex items-center gap-1">
+                        <span className="text-xl">{strain.mutation.name.split(' ')[0]}</span>
+                        <span className="text-xs font-bold text-yellow-500">MUTATION!</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {strain.mutation.description}
+                      </div>
+                      <div className="text-xs font-semibold text-yellow-500">
+                        {strain.mutation.type === 'yield' && `+${((strain.mutation.bonus - 1) * 100).toFixed(0)}% Ertrag!`}
+                        {strain.mutation.type === 'quality' && `+${((strain.mutation.bonus - 1) * 100).toFixed(0)}% Qualität!`}
+                        {strain.mutation.type === 'speed' && `${((1 - strain.mutation.bonus) * 100).toFixed(0)}% schneller!`}
+                        {strain.mutation.type === 'super' && `+${((strain.mutation.bonus - 1) * 100).toFixed(0)}% ALLES!`}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="text-xs space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Ertrag:</span>
+                      <span className="font-semibold">{strain.baseYield}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Preis:</span>
+                      <span className="font-semibold">{strain.seedPrice} Nugs</span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {strain.description}
+                  </p>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </Card>
+      )}
+
       {/* Phenotypes Collection */}
       <Card className="p-6">
         <h3 className="text-lg font-bold mb-4">Entdeckte Phänotypen</h3>

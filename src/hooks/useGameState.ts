@@ -679,7 +679,7 @@ export const useGameState = () => {
   }, []);
 
   // Breeding functions
-  const breedStrains = useCallback((parent1Id: string, parent2Id: string): boolean => {
+  const breedStrains = useCallback((parent1Id: string, parent2Id: string): CustomStrain | null => {
     let newStrain: CustomStrain | null = null;
     
     setState(prev => {
@@ -703,7 +703,7 @@ export const useGameState = () => {
       };
     });
     
-    return newStrain !== null;
+    return newStrain;
   }, []);
 
   const createMotherPlant = useCallback((strainId: string, phenotypeId?: string) => {

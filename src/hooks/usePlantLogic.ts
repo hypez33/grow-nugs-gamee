@@ -115,13 +115,19 @@ export const usePlantLogic = (upgrades: Record<string, number>, growthMultiplier
       qualityChange = -0.05 + (isPerfect ? 0.02 : 0) + skillBonus * 0.5;
     }
 
+    // Mutation quality bonus (for custom strains)
+    const customStrain = customStrains.find((s: CustomStrain) => s.id === plant.strainId);
+    if (customStrain?.mutation && (customStrain.mutation.type === 'quality' || customStrain.mutation.type === 'super')) {
+      qualityChange *= customStrain.mutation.bonus;
+    }
+
     return {
       ...plant.modifiers,
       waterStacks: Math.min(5, plant.modifiers.waterStacks + 1),
       lastWaterTime: Date.now(),
       qualityMultiplier: Math.max(0.5, plant.modifiers.qualityMultiplier + qualityChange)
     };
-  }, [upgrades]);
+  }, [upgrades, customStrains]);
 
   const applyFertilizer = useCallback((plant: Plant): PlantModifiers => {
     const phase = PHASES[plant.phaseIndex];
@@ -162,6 +168,15 @@ export const usePlantLogic = (upgrades: Record<string, number>, growthMultiplier
 
     // Rarity multiplier
     yield_ *= getRarityMultiplier(strain.rarity);
+
+    // Mutation bonuses (for custom strains)
+    const customStrain = customStrains.find((s: CustomStrain) => s.id === plant.strainId);
+    if (customStrain?.mutation) {
+      const mutation = customStrain.mutation;
+      if (mutation.type === 'yield' || mutation.type === 'super') {
+        yield_ *= mutation.bonus;
+      }
+    }
 
     // Quality from actions
     yield_ *= plant.modifiers.qualityMultiplier;
@@ -213,6 +228,12 @@ export const usePlantLogic = (upgrades: Record<string, number>, growthMultiplier
     if (!strain) return 1.0;
 
     let multiplier = strain.baseTimeMultiplier;
+
+    // Mutation speed bonus (for custom strains)
+    const customStrain = customStrains.find((s: CustomStrain) => s.id === strainId);
+    if (customStrain?.mutation && (customStrain.mutation.type === 'speed' || customStrain.mutation.type === 'super')) {
+      multiplier *= customStrain.mutation.bonus;
+    }
 
     // LED upgrade reduces time
     const ledLevel = upgrades['led-panel'] || 0;
