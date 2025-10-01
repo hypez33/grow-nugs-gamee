@@ -688,6 +688,9 @@ export const useGameState = () => {
       const repGain = Math.floor(quantity / 10) + Math.floor(revenueAcc / 100);
 
       success = true;
+      // Award research points for dealer trades (1 RP per 50 Buds)
+      const dealerResearchPoints = Math.max(1, Math.floor(quantity / 50));
+
       return {
         ...prev,
         buds: prev.buds - quantity,
@@ -704,6 +707,10 @@ export const useGameState = () => {
           totalNugsEarned: prev.stats.totalNugsEarned + revenueAcc,
           totalBudsSold: prev.stats.totalBudsSold + quantity,
           totalTrades: prev.stats.totalTrades + 1,
+        },
+        research: {
+          ...prev.research,
+          points: prev.research.points + dealerResearchPoints,
         },
         quests: prev.quests.map(q =>
           q.type === 'sell' && !q.claimed

@@ -244,7 +244,7 @@ const Index = () => {
     if (!strain) return;
 
     // Award research points based on quality and rarity
-    const researchPoints = recordHarvest(harvestingData.harvest, finalQuality, strain.rarity);
+    const researchPoints = recordHarvest(harvestingData.harvest, Math.round(finalQuality * 100), strain.rarity);
     
     // Now send to curing with harvested quality
     startCuring(harvestingData.harvest, finalQuality);
@@ -596,10 +596,11 @@ const Index = () => {
                   totalRevenue={state.trade.totalRevenue}
                   onRefresh={generateTradeOffers}
                   onTradeWithDealer={(dealerId, quantity) => {
-                    const dealer = state.trade.dealerRelationships.find(r => r.dealerId === dealerId);
                     const ok = tradeWithDealer(dealerId, quantity, 1.5);
                     if (ok) {
                       toast.success('Deal erfolgreich!', { description: `${quantity} Buds verkauft!` });
+                      const rp = Math.max(1, Math.floor(quantity / 50));
+                      toast.success('Forschungspunkte erhalten!', { description: `+${rp} Forschungspunkte` });
                     }
                   }}
                   onCreateContract={(dealerId, quantity, duration) => {
