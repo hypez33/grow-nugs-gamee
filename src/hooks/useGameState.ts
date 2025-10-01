@@ -15,6 +15,11 @@ export interface PlantModifiers {
   phenotypeId?: string;
   pestInfestationIds: string[];
   appliedEnhancers: string[]; // PGR, terpen spray, etc.
+  appliedTrainings?: Array<{
+    techniqueId: string;
+    appliedAt: number;
+    successLevel: number;
+  }>;
 }
 
 export interface PlantEnvironment {
@@ -854,6 +859,42 @@ export const useGameState = () => {
     }));
   }, []);
 
+  // Training technique functions
+  const applyTraining = useCallback((slotIndex: number, techniqueId: string, successLevel: number, cost: number): boolean => {
+    if (state.nugs >= cost) {
+      setState(prev => {
+        const plant = prev.slots[slotIndex];
+        if (!plant) return prev;
+
+        const newSlots = [...prev.slots];
+        const currentTrainings = plant.modifiers.appliedTrainings || [];
+        
+        newSlots[slotIndex] = {
+          ...plant,
+          modifiers: {
+            ...plant.modifiers,
+            appliedTrainings: [
+              ...currentTrainings,
+              {
+                techniqueId,
+                appliedAt: Date.now(),
+                successLevel
+              }
+            ]
+          }
+        };
+
+        return {
+          ...prev,
+          nugs: prev.nugs - cost,
+          slots: newSlots
+        };
+      });
+      return true;
+    }
+    return false;
+  }, [state.nugs]);
+
   // Enhancer functions (PGR, Terpen Spray, etc.)
   const applyEnhancer = useCallback((slotIndex: number, enhancerId: string, price: number): boolean => {
     if (state.nugs >= price) {
@@ -938,6 +979,7 @@ export const useGameState = () => {
     treatInfestation,
     checkForPests,
     applyEnhancer,
+    applyTraining,
     driftEnvironmentValues,
     updateSettings
   };

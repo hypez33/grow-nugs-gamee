@@ -5,12 +5,14 @@ import { Progress } from '@/components/ui/progress';
 import { Plant, PestInfestation } from '@/hooks/useGameState';
 import { usePlantLogic } from '@/hooks/usePlantLogic';
 import { PHASES } from '@/data/phases';
-import { Droplets, Sprout, Sparkles, Bug, AlertTriangle, Gauge, Wind, Thermometer, AlertOctagon } from 'lucide-react';
+import { Droplets, Sprout, Sparkles, Bug, AlertTriangle, Gauge, Wind, Thermometer, AlertOctagon, Scissors } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { EnvironmentState } from '@/data/environment';
 import { PESTS } from '@/data/pests';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { TrainingModal } from './TrainingModal';
+import { AppliedTraining } from '@/data/training';
 
 // Import phase images
 import germinationImg from '@/assets/phases/germination.png';
@@ -41,6 +43,7 @@ interface PlantSlotProps {
   onFertilize: (slotIndex: number) => void;
   onHarvest: (slotIndex: number) => void;
   onUpdate: (slotIndex: number, elapsed: number, phaseIndex: number) => void;
+  onTraining: (slotIndex: number, techniqueId: string, success: number) => void;
   perfectWindowMs?: number;
 }
 
@@ -56,11 +59,13 @@ export const PlantSlot = ({
   onFertilize,
   onHarvest,
   onUpdate,
+  onTraining,
   perfectWindowMs = 2500
 }: PlantSlotProps) => {
   const logic = usePlantLogic(upgrades, 1, customStrains);
   const [localElapsed, setLocalElapsed] = useState(plant?.elapsedInPhase || 0);
   const [gameOpen, setGameOpen] = useState(false);
+  const [trainingOpen, setTrainingOpen] = useState(false);
   const [slider, setSlider] = useState(0);
   const [dir, setDir] = useState(1);
   const [droplets, setDroplets] = useState<{id:number; left:number;}[]>([]);
@@ -351,40 +356,58 @@ export const PlantSlot = ({
           Ernten!
         </Button>
       ) : (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              onClick={() => {
+                if (!waterAction.canPerform) return;
+                setGameOpen(true);
+                setSlider(0);
+                setDir(1);
+              }}
+              disabled={!waterAction.canPerform}
+              variant="secondary"
+              size="sm"
+              className={cn(
+                "relative hover:scale-105 transition-transform",
+                currentPhase.waterRecommended && "ring-2 ring-primary/50",
+                hasWaterStress && "ring-2 ring-destructive/50 animate-pulse"
+              )}
+            >
+              <Droplets className="w-4 h-4 mr-1" />
+              Gießen
+              <span className="text-xs ml-1">({waterAction.cost})</span>
+            </Button>
+            <Button
+              onClick={() => onFertilize(slotIndex)}
+              disabled={!fertAction.canPerform}
+              variant="secondary"
+              size="sm"
+              className={cn(
+                "relative hover:scale-105 transition-transform",
+                currentPhase.fertilizerRecommended && "ring-2 ring-primary/50"
+              )}
+            >
+              <Sprout className="w-4 h-4 mr-1" />
+              Düngen
+              <span className="text-xs ml-1">({fertAction.cost})</span>
+            </Button>
+          </div>
+          
+          {/* Training Button */}
           <Button
-            onClick={() => {
-              if (!waterAction.canPerform) return;
-              setGameOpen(true);
-              setSlider(0);
-              setDir(1);
-            }}
-            disabled={!waterAction.canPerform}
-            variant="secondary"
+            onClick={() => setTrainingOpen(true)}
+            variant="outline"
             size="sm"
-            className={cn(
-              "relative hover:scale-105 transition-transform",
-              currentPhase.waterRecommended && "ring-2 ring-primary/50",
-              hasWaterStress && "ring-2 ring-destructive/50 animate-pulse"
-            )}
+            className="w-full hover:scale-105 transition-transform hover:border-primary/50"
           >
-            <Droplets className="w-4 h-4 mr-1" />
-            Gießen
-            <span className="text-xs ml-1">({waterAction.cost})</span>
-          </Button>
-          <Button
-            onClick={() => onFertilize(slotIndex)}
-            disabled={!fertAction.canPerform}
-            variant="secondary"
-            size="sm"
-            className={cn(
-              "relative hover:scale-105 transition-transform",
-              currentPhase.fertilizerRecommended && "ring-2 ring-primary/50"
+            <Scissors className="w-4 h-4 mr-1" />
+            Training
+            {plant.modifiers.appliedTrainings && plant.modifiers.appliedTrainings.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {plant.modifiers.appliedTrainings.length}
+              </Badge>
             )}
-          >
-            <Sprout className="w-4 h-4 mr-1" />
-            Düngen
-            <span className="text-xs ml-1">({fertAction.cost})</span>
           </Button>
         </div>
       )}
@@ -396,6 +419,21 @@ export const PlantSlot = ({
           {!fertAction.canPerform && !waterAction.canPerform && ' | '}
           {!fertAction.canPerform && fertAction.reason}
         </p>
+      )}
+
+      {/* Training Modal */}
+      {trainingOpen && plant && (
+        <TrainingModal
+          open={trainingOpen}
+          onClose={() => setTrainingOpen(false)}
+          currentPhase={plant.phaseIndex}
+          nugs={nugs}
+          appliedTrainings={(plant.modifiers.appliedTrainings || []) as AppliedTraining[]}
+          onApplyTraining={(techniqueId, success) => {
+            onTraining(slotIndex, techniqueId, success);
+            setTrainingOpen(false);
+          }}
+        />
       )}
 
       {/* Water mini-game overlay */}

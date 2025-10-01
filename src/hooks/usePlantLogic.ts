@@ -4,6 +4,7 @@ import { PHASES } from '@/data/phases';
 import { STRAINS, getRarityMultiplier } from '@/data/strains';
 import { ENHANCERS } from '@/data/enhancers';
 import { CustomStrain } from '@/data/breeding';
+import { TRAINING_TECHNIQUES } from '@/data/training';
 
 const WATER_COST = 5;
 const FERTILIZER_COST = 15;
@@ -178,6 +179,18 @@ export const usePlantLogic = (upgrades: Record<string, number>, growthMultiplier
     // Water stacks bonus (capped)
     const waterBonus = Math.min(0.25, plant.modifiers.waterStacks * 0.05);
     yield_ *= (1 + waterBonus);
+
+    // Apply training techniques bonuses
+    if (plant.modifiers.appliedTrainings && plant.modifiers.appliedTrainings.length > 0) {
+      plant.modifiers.appliedTrainings.forEach((training) => {
+        const technique = TRAINING_TECHNIQUES.find(t => t.id === training.techniqueId);
+        if (technique) {
+          // Apply technique bonus scaled by success level
+          const bonus = (technique.yieldBonus - 1) * training.successLevel;
+          yield_ *= (1 + bonus);
+        }
+      });
+    }
 
     // Apply enhancers (PGR, Terpen Spray, etc.) - increases yield but damages quality
     if (plant.modifiers.appliedEnhancers && plant.modifiers.appliedEnhancers.length > 0) {

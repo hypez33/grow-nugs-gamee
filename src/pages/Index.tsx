@@ -14,6 +14,7 @@ import { StatsPanel } from '@/components/StatsPanel';
 import { BreedingLab } from '@/components/BreedingLab';
 import { EnvironmentControl } from '@/components/EnvironmentControl';
 import { PestControl } from '@/components/PestControl';
+import { TrimmingGameWrapper } from '@/components/TrimmingGameWrapper';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
@@ -63,7 +64,8 @@ const Index = () => {
     treatInfestation,
     checkForPests,
     driftEnvironmentValues,
-    updateSettings
+    updateSettings,
+    applyTraining
   } = useGameState();
 
   const logic = usePlantLogic(state.upgrades, state.event?.effects?.growthMultiplier ?? 1, state.breeding.customStrains);
@@ -71,6 +73,11 @@ const Index = () => {
   const [shopOpen, setShopOpen] = useState(false);
   const [plantingSlot, setPlantingSlot] = useState<number | null>(null);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [trimmingData, setTrimmingData] = useState<{
+    slotIndex: number;
+    harvest: number;
+    quality: number;
+  } | null>(null);
 
   // Ensure we have initial trade offers
   useEffect(() => {
@@ -211,15 +218,31 @@ const Index = () => {
     if (!plant) return;
 
     const harvest = logic.calculateHarvest(plant);
-    // send to curing with current quality score
-    startCuring(harvest, plant.modifiers.qualityMultiplier);
-    recordHarvest(harvest);
-    removePlant(slotIndex);
+    
+    // Show trimming game
+    setTrimmingData({
+      slotIndex,
+      harvest,
+      quality: plant.modifiers.qualityMultiplier
+    });
+  };
 
-    toast.success('Ernte abgeschlossen!', {
-      description: `Batch in Trocknung: +${harvest} Buds`,
+  const handleTrimmingComplete = (finalQuality: number) => {
+    if (!trimmingData) return;
+
+    // Now send to curing with trimmed quality
+    startCuring(trimmingData.harvest, finalQuality);
+    recordHarvest(trimmingData.harvest);
+    removePlant(trimmingData.slotIndex);
+
+    const qualityBonus = ((finalQuality / trimmingData.quality) - 1) * 100;
+    
+    toast.success('Ernte & Trimming abgeschlossen!', {
+      description: `${trimmingData.harvest} Buds in Trocknung${qualityBonus > 0 ? ` (+${qualityBonus.toFixed(0)}% Qualität!)` : ''}`,
       duration: 5000
     });
+
+    setTrimmingData(null);
   };
 
   const handleUpdate = (slotIndex: number, elapsed: number, phaseIndex: number) => {
@@ -227,6 +250,20 @@ const Index = () => {
       elapsedInPhase: elapsed,
       phaseIndex
     });
+  };
+
+  const handleTraining = (slotIndex: number, techniqueId: string, successLevel: number) => {
+    const { TRAINING_TECHNIQUES } = require('@/data/training');
+    const technique = TRAINING_TECHNIQUES.find((t: any) => t.id === techniqueId);
+    if (!technique) return;
+
+    if (applyTraining(slotIndex, techniqueId, successLevel, technique.cost)) {
+      toast.success(`${technique.name} angewendet!`, {
+        description: `Erfolgsrate: ${(successLevel * 100).toFixed(0)}%`
+      });
+    } else {
+      toast.error('Nicht genug Nugs!');
+    }
   };
 
   const handleBuyUpgrade = (upgradeId: string) => {
@@ -391,6 +428,7 @@ const Index = () => {
                   onFertilize={handleFertilize}
                   onHarvest={handleHarvest}
                   onUpdate={handleUpdate}
+                  onTraining={handleTraining}
                   perfectWindowMs={state.event?.id === 'festival' ? 4000 : state.event?.id === 'cosmic-alignment' ? 3500 : state.event?.id === 'mystic-fog' ? 1500 : 2500}
                 />
               ))}
@@ -653,6 +691,15 @@ const Index = () => {
       <div className="fixed bottom-4 right-4 text-xs text-muted-foreground bg-card/80 backdrop-blur px-3 py-2 rounded-full border border-border">
         Auto-Save alle 5s
       </div>
+
+      {/* Trimming Game */}
+      {trimmingData && (
+        <TrimmingGameWrapper
+          budQuantity={trimmingData.harvest}
+          baseQuality={trimmingData.quality}
+          onComplete={handleTrimmingComplete}
+        />
+      )}
     </div>
   );
 };
