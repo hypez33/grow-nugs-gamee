@@ -21,6 +21,7 @@ import { HarvestingGameWrapper } from '@/components/HarvestingGameWrapper';
 import { ResearchTree } from '@/components/ResearchTree';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Sprout, ShoppingCart, Save, RotateCcw, TrendingUp, Settings, BadgeDollarSign, Leaf, ListChecks, PartyPopper, Dna, Droplets, Bug, Microscope } from 'lucide-react';
 import nugIcon from '@/assets/ui/nug-icon.png';
@@ -887,6 +888,207 @@ const Index = () => {
                       {state.settings.sfxEnabled ? 'An' : 'Aus'}
                     </Button>
                   </div>
+                </div>
+              </Card>
+
+              {/* Cheat Menu */}
+              <Card className="p-6 bg-gradient-to-br from-destructive/10 to-destructive/5 border-destructive/30 animate-fade-in">
+                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <PartyPopper className="w-5 h-5 text-destructive" />
+                  Cheat-Menü
+                  <Badge variant="destructive" className="ml-2">DEV</Badge>
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Nugs Cheat */}
+                  <div className="space-y-2 p-4 bg-card rounded-lg border border-border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <img src={nugIcon} alt="Nugs" className="w-5 h-5" />
+                      <span className="font-semibold">Nugs hinzufügen</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          addNugs(100);
+                          toast.success('+100 Nugs', { duration: 1000 });
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        +100
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          addNugs(1000);
+                          toast.success('+1,000 Nugs', { duration: 1000 });
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        +1K
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          addNugs(10000);
+                          toast.success('+10,000 Nugs', { duration: 1000 });
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        +10K
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Buds Cheat */}
+                  <div className="space-y-2 p-4 bg-card rounded-lg border border-border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Leaf className="w-5 h-5 text-primary" />
+                      <span className="font-semibold">Buds hinzufügen</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          addBuds(50);
+                          toast.success('+50 Buds', { duration: 1000 });
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        +50
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          addBuds(500);
+                          toast.success('+500 Buds', { duration: 1000 });
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        +500
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          addBuds(5000);
+                          toast.success('+5,000 Buds', { duration: 1000 });
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        +5K
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Research Points Cheat */}
+                  <div className="space-y-2 p-4 bg-card rounded-lg border border-border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Microscope className="w-5 h-5 text-info" />
+                      <span className="font-semibold">Forschungspunkte</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          const currentRP = state.research.points;
+                          // Use updatePlant to modify research points indirectly via state
+                          state.research.points += 10;
+                          manualSave();
+                          toast.success('+10 RP', { duration: 1000 });
+                          window.location.reload(); // Quick hack to update state
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        +10
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          state.research.points += 50;
+                          manualSave();
+                          toast.success('+50 RP', { duration: 1000 });
+                          window.location.reload();
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        +50
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          state.research.points += 200;
+                          manualSave();
+                          toast.success('+200 RP', { duration: 1000 });
+                          window.location.reload();
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        +200
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Reputation Cheat */}
+                  <div className="space-y-2 p-4 bg-card rounded-lg border border-border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <BadgeDollarSign className="w-5 h-5 text-accent" />
+                      <span className="font-semibold">Reputation</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          state.trade.reputation += 10;
+                          manualSave();
+                          toast.success('+10 Reputation', { duration: 1000 });
+                          window.location.reload();
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        +10
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          state.trade.reputation += 50;
+                          manualSave();
+                          toast.success('+50 Reputation', { duration: 1000 });
+                          window.location.reload();
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        +50
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          state.trade.reputation += 100;
+                          manualSave();
+                          toast.success('+100 Reputation', { duration: 1000 });
+                          window.location.reload();
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        +100
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 p-3 bg-muted/30 rounded text-xs text-muted-foreground">
+                  ⚠️ Hinweis: Diese Cheats sind zum Testen gedacht. Die Seite wird nach Verwendung von RP/Rep automatisch neu geladen.
                 </div>
               </Card>
             </div>
