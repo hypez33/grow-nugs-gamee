@@ -228,6 +228,10 @@ export const useGameState = () => {
           stats: { ...INITIAL_STATE.stats, ...(parsed?.stats || {}) },
           trade: { ...INITIAL_STATE.trade, ...(parsed?.trade || {}) },
           quests: parsed?.quests || DEFAULT_QUESTS,
+          breeding: { ...INITIAL_STATE.breeding, ...(parsed?.breeding || {}) },
+          environment: { ...INITIAL_STATE.environment, ...(parsed?.environment || {}) },
+          envUpgrades: { ...INITIAL_STATE.envUpgrades, ...(parsed?.envUpgrades || {}) },
+          pests: { ...INITIAL_STATE.pests, ...(parsed?.pests || {}) },
         } as GameState;
       } catch (e) {
         console.error('Failed to load save:', e);

@@ -47,7 +47,7 @@ export const BreedingLab = ({
 
   const availableStrains: (Strain | CustomStrain)[] = [
     ...STRAINS.filter(s => discoveredStrains.includes(s.id)),
-    ...customStrains
+    ...(customStrains || [])
   ];
 
   return (
