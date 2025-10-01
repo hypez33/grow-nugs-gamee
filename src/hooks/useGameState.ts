@@ -417,7 +417,9 @@ export const useGameState = () => {
     return false;
   }, [state.buds]);
 
-  const recordHarvest = useCallback((budsHarvested: number) => {
+  const recordHarvest = useCallback((budsHarvested: number, qualityScore: number, strainRarity: 'common' | 'rare' | 'epic' | 'legendary') => {
+    const researchPoints = calculateResearchPoints(qualityScore, strainRarity);
+    
     setState(prev => ({
       ...prev,
       stats: {
@@ -426,12 +428,18 @@ export const useGameState = () => {
         bestHarvest: Math.max(prev.stats.bestHarvest, budsHarvested),
         totalBudsHarvested: prev.stats.totalBudsHarvested + budsHarvested,
       },
+      research: {
+        ...prev.research,
+        points: prev.research.points + researchPoints,
+      },
       quests: prev.quests.map(q =>
         q.type === 'harvest' && !q.claimed
           ? { ...q, progress: Math.min(q.goal, q.progress + 1) }
           : q
       ),
     }));
+    
+    return researchPoints;
   }, []);
 
   // Quality helpers

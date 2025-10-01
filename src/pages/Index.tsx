@@ -236,9 +236,18 @@ const Index = () => {
   const handleHarvestingComplete = (finalQuality: number) => {
     if (!harvestingData) return;
 
+    // Get strain info for research points
+    const plant = state.slots[harvestingData.slotIndex];
+    if (!plant) return;
+    
+    const strain = logic.getStrain(plant.strainId);
+    if (!strain) return;
+
+    // Award research points based on quality and rarity
+    const researchPoints = recordHarvest(harvestingData.harvest, finalQuality, strain.rarity);
+    
     // Now send to curing with harvested quality
     startCuring(harvestingData.harvest, finalQuality);
-    recordHarvest(harvestingData.harvest);
     removePlant(harvestingData.slotIndex);
 
     const qualityBonus = ((finalQuality / harvestingData.quality) - 1) * 100;
@@ -247,6 +256,13 @@ const Index = () => {
       description: `${harvestingData.harvest} Buds in Trocknung${qualityBonus > 0 ? ` (+${qualityBonus.toFixed(0)}% Qualität!)` : ''}`,
       duration: 5000
     });
+
+    if (researchPoints > 0) {
+      toast.success('Forschungspunkte erhalten!', {
+        description: `+${researchPoints} Forschungspunkte`,
+        duration: 3000
+      });
+    }
 
     setHarvestingData(null);
   };
@@ -333,6 +349,11 @@ const Index = () => {
                 <img src={nugIcon} alt="Nugs" className="w-6 h-6 animate-pulse" />
                 <span className="text-2xl font-bold text-accent">{state.nugs}</span>
                 <span className="text-sm text-muted-foreground">Nugs</span>
+              </div>
+              <div className="flex items-center gap-2 bg-gradient-to-br from-info/20 to-info/10 px-4 py-2 rounded-lg transition-all hover:scale-105 hover:shadow-lg border border-info/30">
+                <Microscope className="w-5 h-5 text-info" />
+                <span className="text-xl font-bold text-info">{state.research.points}</span>
+                <span className="text-xs text-muted-foreground">RP</span>
               </div>
 
               <Button
