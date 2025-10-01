@@ -259,31 +259,31 @@ export const EnvironmentControl = ({
             const owned = envUpgrades[upgrade.id] || 0;
             const canAfford = nugs >= upgrade.basePrice;
             
-            return (
-              <Card key={upgrade.id} className="p-4 hover:bg-accent/5 transition-all">
-                <div className="space-y-3">
-                  <div>
-                    <div className="font-medium">{upgrade.name}</div>
-                    <div className="text-xs text-muted-foreground">{upgrade.description}</div>
+              return (
+                <Card key={upgrade.id} className="p-4 transition-all hover:scale-[1.02] hover:bg-accent/5 hover:border-accent/30">
+                  <div className="space-y-3">
+                    <div>
+                      <div className="font-medium transition-colors hover:text-primary">{upgrade.name}</div>
+                      <div className="text-xs text-muted-foreground">{upgrade.description}</div>
+                    </div>
+                    
+                    {owned > 0 && (
+                      <Badge variant="secondary" className="text-xs transition-all hover:scale-110 animate-pulse">
+                        ✓ Installiert
+                      </Badge>
+                    )}
+                    
+                    <Button 
+                      size="sm" 
+                      className="w-full transition-all hover:scale-105"
+                      disabled={owned > 0 || !canAfford}
+                      onClick={() => onBuyUpgrade(upgrade.id)}
+                    >
+                      {owned > 0 ? 'Installiert' : `Kaufen (${upgrade.basePrice} Nugs)`}
+                    </Button>
                   </div>
-                  
-                  {owned > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      ✓ Installiert
-                    </Badge>
-                  )}
-                  
-                  <Button 
-                    size="sm" 
-                    className="w-full"
-                    disabled={owned > 0 || !canAfford}
-                    onClick={() => onBuyUpgrade(upgrade.id)}
-                  >
-                    {owned > 0 ? 'Installiert' : `Kaufen (${upgrade.basePrice} Nugs)`}
-                  </Button>
-                </div>
-              </Card>
-            );
+                </Card>
+              );
           })}
         </div>
       </Card>

@@ -86,19 +86,19 @@ export const ShopContent = ({
               const canAfford = nugs >= totalCost;
 
               return (
-                <Card key={strain.id} className="p-4 hover:border-primary/50 transition-all">
+                <Card key={strain.id} className="p-4 transition-all hover:scale-[1.02] hover:border-primary/50 hover:shadow-lg animate-fade-in">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1 min-w-0 mr-2">
-                      <h3 className={`font-bold ${strain.name.length > 30 ? 'text-sm' : strain.name.length > 20 ? 'text-base' : 'text-lg'}`}>
+                      <h3 className={`font-bold transition-colors hover:text-primary ${strain.name.length > 30 ? 'text-sm' : strain.name.length > 20 ? 'text-base' : 'text-lg'}`}>
                         {strain.name}
                       </h3>
-                      <Badge variant="outline" className={getRarityColor(strain.rarity)}>
+                      <Badge variant="outline" className={`${getRarityColor(strain.rarity)} transition-all hover:scale-110`}>
                         {strain.rarity}
                       </Badge>
                     </div>
                     <div className="text-right">
                       <div className="flex items-center gap-1">
-                        <img src={nugIcon} alt="Nugs" className="w-4 h-4" />
+                        <img src={nugIcon} alt="Nugs" className="w-4 h-4 transition-transform hover:rotate-12" />
                         <span className="font-bold">{totalCost}</span>
                       </div>
                       <span className="text-xs text-muted-foreground">
@@ -110,11 +110,11 @@ export const ShopContent = ({
                   <p className="text-sm text-muted-foreground mb-3">{strain.description}</p>
 
                   <div className="grid grid-cols-2 gap-2 text-xs mb-3">
-                    <div>
+                    <div className="transition-all hover:scale-105">
                       <span className="text-muted-foreground">Basis-Ertrag:</span>
                       <span className="ml-1 font-semibold">{strain.baseYield}</span>
                     </div>
-                    <div>
+                    <div className="transition-all hover:scale-105">
                       <span className="text-muted-foreground">Wachstum:</span>
                       <span className="ml-1 font-semibold">{(strain.baseTimeMultiplier * 100).toFixed(0)}%</span>
                     </div>
@@ -123,7 +123,7 @@ export const ShopContent = ({
                   <Button
                     onClick={() => onBuySeed(strain.id)}
                     disabled={!canAfford}
-                    className="w-full"
+                    className="w-full transition-all hover:scale-105"
                     variant={canAfford ? 'default' : 'outline'}
                   >
                     {canAfford ? 'Kaufen & Pflanzen' : 'Zu wenig Nugs'}
@@ -143,17 +143,17 @@ export const ShopContent = ({
               const canAfford = nugs >= price;
 
               return (
-                <Card key={upgrade.id} className="p-4">
+                <Card key={upgrade.id} className="p-4 transition-all hover:scale-[1.02] hover:border-primary/30 hover:shadow-lg animate-fade-in">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-bold">{upgrade.name}</h3>
-                        <Badge variant="secondary">Level {currentLevel}/{upgrade.maxLevel}</Badge>
+                        <h3 className="font-bold transition-colors hover:text-primary">{upgrade.name}</h3>
+                        <Badge variant="secondary" className="transition-all hover:scale-110">Level {currentLevel}/{upgrade.maxLevel}</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{upgrade.description}</p>
 
                       {!isMaxed && (
-                        <p className="text-xs text-primary mt-2">
+                        <p className="text-xs text-primary mt-2 animate-pulse">
                           Nächster Bonus: +{(upgrade.effectPerLevel * 100).toFixed(0)}
                           {upgrade.effectType === 'slot' ? ' Slot' : '%'}
                         </p>
@@ -161,14 +161,14 @@ export const ShopContent = ({
                     </div>
 
                     <div className="ml-4">
-                      <Button onClick={() => onBuyUpgrade(upgrade.id)} disabled={isMaxed || !canAfford} size="sm">
+                      <Button onClick={() => onBuyUpgrade(upgrade.id)} disabled={isMaxed || !canAfford} size="sm" className="transition-all hover:scale-110">
                         {isMaxed ? (
                           'Max'
                         ) : (
                           <>
                             <ArrowUp className="w-4 h-4 mr-1" />
                             {price}
-                            <img src={nugIcon} alt="Nugs" className="w-4 h-4 ml-1" />
+                            <img src={nugIcon} alt="Nugs" className="w-4 h-4 ml-1 transition-transform hover:rotate-12" />
                           </>
                         )}
                       </Button>

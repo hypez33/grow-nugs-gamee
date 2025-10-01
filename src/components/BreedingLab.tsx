@@ -53,13 +53,13 @@ export const BreedingLab = ({
   return (
     <div className="space-y-6">
       {/* Breeding Section */}
-      <Card className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+      <Card className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20 transition-all hover:shadow-lg animate-fade-in">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-3 rounded-lg bg-primary/10">
+          <div className="p-3 rounded-lg bg-primary/10 transition-all hover:scale-110">
             <Dna className="w-6 h-6 text-primary animate-pulse" />
           </div>
           <div>
-            <h3 className="text-xl font-bold">Züchtungs-Labor</h3>
+            <h3 className="text-xl font-bold transition-colors hover:text-primary">Züchtungs-Labor</h3>
             <p className="text-sm text-muted-foreground">Kreuze Strains für neue Genetiken</p>
           </div>
         </div>
@@ -128,9 +128,9 @@ export const BreedingLab = ({
         <Button 
           onClick={handleBreed}
           disabled={!selectedParent1 || !selectedParent2 || isBreeding}
-          className="w-full bg-gradient-to-r from-primary to-accent"
+          className="w-full bg-gradient-to-r from-primary to-accent transition-all hover:scale-105 hover:shadow-lg"
         >
-          <Sparkles className="w-4 h-4 mr-2" />
+          <Sparkles className={`w-4 h-4 mr-2 ${isBreeding && 'animate-spin'}`} />
           {isBreeding ? "Züchtet..." : "Kreuzen"}
         </Button>
 
@@ -143,14 +143,14 @@ export const BreedingLab = ({
       </Card>
 
       {/* Mother Plants Section */}
-      <Card className="p-6 bg-gradient-to-br from-accent/5 to-primary/5 border-accent/20">
+      <Card className="p-6 bg-gradient-to-br from-accent/5 to-primary/5 border-accent/20 transition-all hover:shadow-lg animate-fade-in">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-accent/10">
+            <div className="p-3 rounded-lg bg-accent/10 transition-all hover:scale-110">
               <Copy className="w-6 h-6 text-accent" />
             </div>
             <div>
-              <h3 className="text-xl font-bold">Mutterpflanzen</h3>
+              <h3 className="text-xl font-bold transition-colors hover:text-accent">Mutterpflanzen</h3>
               <p className="text-sm text-muted-foreground">Bewahre Elite-Genetiken</p>
             </div>
           </div>
@@ -158,6 +158,7 @@ export const BreedingLab = ({
             variant="outline" 
             size="sm"
             onClick={() => toast.info("Wähle eine geerntete Pflanze mit guter Qualität")}
+            className="transition-all hover:scale-105"
           >
             <Plus className="w-4 h-4 mr-2" />
             Neue Mutter ({MOTHER_PLANT_COST} Nugs)

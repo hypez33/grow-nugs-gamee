@@ -15,6 +15,7 @@ import { BreedingLab } from '@/components/BreedingLab';
 import { EnvironmentControl } from '@/components/EnvironmentControl';
 import { PestControl } from '@/components/PestControl';
 import { Card } from '@/components/ui/card';
+import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { Sprout, ShoppingCart, Save, RotateCcw, TrendingUp, Settings, BadgeDollarSign, Leaf, ListChecks, PartyPopper, Dna, Droplets, Bug } from 'lucide-react';
 import nugIcon from '@/assets/ui/nug-icon.png';
@@ -61,7 +62,8 @@ const Index = () => {
     buyEnvUpgrade,
     treatInfestation,
     checkForPests,
-    driftEnvironmentValues
+    driftEnvironmentValues,
+    updateSettings
   } = useGameState();
 
   const logic = usePlantLogic(state.upgrades, state.event?.effects?.growthMultiplier ?? 1, state.breeding.customStrains);
@@ -269,24 +271,24 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
+      <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50 animate-fade-in">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Sprout className="w-8 h-8 text-primary" />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <Sprout className="w-8 h-8 text-primary animate-pulse" />
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hover:scale-105 transition-transform">
                 Cannabis Grower
               </h1>
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-muted/50 px-4 py-2 rounded-lg">
-                <Leaf className="w-6 h-6 text-primary" />
+              <div className="flex items-center gap-2 bg-gradient-to-br from-muted/50 to-muted/30 px-4 py-2 rounded-lg transition-all hover:scale-105 hover:shadow-lg">
+                <Leaf className="w-6 h-6 text-primary animate-pulse" />
                 <span className="text-2xl font-bold text-primary">{state.buds}</span>
                 <span className="text-sm text-muted-foreground">Buds</span>
               </div>
-              <div className="flex items-center gap-2 bg-muted/50 px-4 py-2 rounded-lg">
-                <img src={nugIcon} alt="Nugs" className="w-6 h-6" />
+              <div className="flex items-center gap-2 bg-gradient-to-br from-muted/50 to-muted/30 px-4 py-2 rounded-lg transition-all hover:scale-105 hover:shadow-lg">
+                <img src={nugIcon} alt="Nugs" className="w-6 h-6 animate-pulse" />
                 <span className="text-2xl font-bold text-accent">{state.nugs}</span>
                 <span className="text-sm text-muted-foreground">Nugs</span>
               </div>
@@ -296,6 +298,7 @@ const Index = () => {
                 size="icon"
                 onClick={handleManualSave}
                 title="Manuell speichern"
+                className="transition-all hover:scale-110 hover:bg-primary/10"
               >
                 <Save className="w-4 h-4" />
               </Button>
@@ -305,6 +308,7 @@ const Index = () => {
                 size="icon"
                 onClick={() => setResetDialogOpen(true)}
                 title="Spiel zurücksetzen"
+                className="transition-all hover:scale-110 hover:bg-destructive/10"
               >
                 <RotateCcw className="w-4 h-4" />
               </Button>
@@ -332,38 +336,42 @@ const Index = () => {
           </Card>
         )}
         <Tabs defaultValue="farm" className="space-y-6">
-          <TabsList className="grid w-full max-w-6xl mx-auto grid-cols-8 gap-1">
-            <TabsTrigger value="farm" className="text-xs md:text-sm">
+          <TabsList className="grid w-full max-w-6xl mx-auto grid-cols-9 gap-1">
+            <TabsTrigger value="farm" className="text-xs md:text-sm transition-all hover:scale-105">
               <Sprout className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden md:inline">Farm</span>
             </TabsTrigger>
-            <TabsTrigger value="shop" className="text-xs md:text-sm">
+            <TabsTrigger value="shop" className="text-xs md:text-sm transition-all hover:scale-105">
               <ShoppingCart className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden md:inline">Shop</span>
             </TabsTrigger>
-            <TabsTrigger value="breeding" className="text-xs md:text-sm">
+            <TabsTrigger value="breeding" className="text-xs md:text-sm transition-all hover:scale-105">
               <Dna className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden md:inline">Züchtung</span>
             </TabsTrigger>
-            <TabsTrigger value="environment" className="text-xs md:text-sm">
+            <TabsTrigger value="environment" className="text-xs md:text-sm transition-all hover:scale-105">
               <Droplets className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden md:inline">Umwelt</span>
             </TabsTrigger>
-            <TabsTrigger value="pests" className="text-xs md:text-sm">
+            <TabsTrigger value="pests" className="text-xs md:text-sm transition-all hover:scale-105">
               <Bug className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden md:inline">Schädlinge</span>
             </TabsTrigger>
-            <TabsTrigger value="trade" className="text-xs md:text-sm">
+            <TabsTrigger value="trade" className="text-xs md:text-sm transition-all hover:scale-105">
               <BadgeDollarSign className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden md:inline">Handel</span>
             </TabsTrigger>
-            <TabsTrigger value="stats" className="text-xs md:text-sm">
+            <TabsTrigger value="stats" className="text-xs md:text-sm transition-all hover:scale-105">
               <TrendingUp className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden md:inline">Stats</span>
             </TabsTrigger>
-            <TabsTrigger value="quests" className="text-xs md:text-sm">
+            <TabsTrigger value="quests" className="text-xs md:text-sm transition-all hover:scale-105">
               <ListChecks className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden md:inline">Quests</span>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="text-xs md:text-sm transition-all hover:scale-105">
+              <Settings className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Settings</span>
             </TabsTrigger>
           </TabsList>
 
@@ -509,20 +517,20 @@ const Index = () => {
 
           <TabsContent value="quests">
             <div className="max-w-4xl mx-auto">
-              <Card className="p-4 mb-4">
+              <Card className="p-4 mb-4 transition-all hover:border-primary/30 animate-fade-in">
                 <div className="font-semibold mb-2">Taegliche Quests</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {state.quests.map((q) => {
                     const pct = Math.min(100, Math.floor((q.progress / q.goal) * 100));
                     const done = q.progress >= q.goal;
                     return (
-                      <Card key={q.id} className="p-4">
+                      <Card key={q.id} className="p-4 transition-all hover:scale-[1.02] hover:border-primary/30">
                         <div className="flex items-center justify-between">
                           <div className="font-semibold">{q.description}</div>
                           <div className="text-xs text-muted-foreground">{q.progress}/{q.goal}</div>
                         </div>
                         <div className="mt-2 h-2 bg-muted rounded">
-                          <div className="h-2 bg-primary rounded" style={{ width: `${pct}%` }} />
+                          <div className="h-2 bg-primary rounded transition-all" style={{ width: `${pct}%` }} />
                         </div>
                         <div className="mt-2 text-xs text-muted-foreground">
                           Belohnung: {q.reward.nugs ? `${q.reward.nugs} Nugs` : ''}{q.reward.nugs && q.reward.buds ? ' · ' : ''}{q.reward.buds ? `${q.reward.buds} Buds` : ''}
@@ -533,13 +541,74 @@ const Index = () => {
                             if (ok) {
                               toast.success('Belohnung eingesammelt');
                             }
-                          }}>
+                          }} className="transition-all hover:scale-105">
                             {q.claimed ? 'Eingesammelt' : (done ? 'Belohnung abholen' : 'In Arbeit')}
                           </Button>
                         </div>
                       </Card>
                     );
                   })}
+                </div>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="max-w-4xl mx-auto space-y-4">
+              <Card className="p-6 bg-gradient-to-br from-muted/30 to-muted/10 animate-fade-in">
+                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <Settings className="w-5 h-5" />
+                  Spieleinstellungen
+                </h3>
+                
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Schädlingshäufigkeit</label>
+                      <span className="text-sm text-muted-foreground">
+                        {(state.settings.pestFrequency * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                    <Slider
+                      value={[state.settings.pestFrequency * 100]}
+                      min={0}
+                      max={100}
+                      step={5}
+                      onValueChange={([val]) => updateSettings('pestFrequency', val / 100)}
+                      className="[&_[role=slider]]:bg-primary [&_[role=slider]]:transition-transform [&_[role=slider]]:hover:scale-110"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Stelle ein, wie häufig Schädlinge auftreten sollen (0% = keine Schädlinge, 100% = maximale Häufigkeit)
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-card rounded-lg transition-all hover:border-primary/30">
+                    <div>
+                      <div className="font-medium">Zufällige Events</div>
+                      <div className="text-sm text-muted-foreground">Aktiviere spontane Spielereignisse</div>
+                    </div>
+                    <Button
+                      variant={state.settings.randomEventsEnabled ? "default" : "outline"}
+                      onClick={() => updateSettings('randomEventsEnabled', !state.settings.randomEventsEnabled)}
+                      className="transition-all hover:scale-105"
+                    >
+                      {state.settings.randomEventsEnabled ? 'An' : 'Aus'}
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-card rounded-lg transition-all hover:border-primary/30">
+                    <div>
+                      <div className="font-medium">Sound-Effekte</div>
+                      <div className="text-sm text-muted-foreground">Spiel-Sounds aktivieren</div>
+                    </div>
+                    <Button
+                      variant={state.settings.sfxEnabled ? "default" : "outline"}
+                      onClick={() => updateSettings('sfxEnabled', !state.settings.sfxEnabled)}
+                      className="transition-all hover:scale-105"
+                    >
+                      {state.settings.sfxEnabled ? 'An' : 'Aus'}
+                    </Button>
+                  </div>
                 </div>
               </Card>
             </div>

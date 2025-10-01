@@ -126,6 +126,7 @@ export interface GameState {
   settings: {
     sfxEnabled: boolean;
     randomEventsEnabled: boolean;
+    pestFrequency: number; // 0.0 to 1.0, multiplier for pest chances
   };
   breeding: {
     motherPlants: MotherPlant[];
@@ -196,7 +197,8 @@ const INITIAL_STATE: GameState = {
   },
   settings: {
     sfxEnabled: true,
-    randomEventsEnabled: true
+    randomEventsEnabled: true,
+    pestFrequency: 0.3 // 30% of base pest chances
   },
   breeding: {
     motherPlants: [],
@@ -808,13 +810,14 @@ export const useGameState = () => {
   const checkForPests = useCallback(() => {
     setState(prev => {
       const protection = getPestProtection(prev.upgrades);
+      const frequencyMultiplier = prev.settings.pestFrequency ?? 0.3;
       const newInfestations: PestInfestation[] = [];
 
       prev.slots.forEach((plant, slotIndex) => {
         if (!plant) return;
         
         PESTS.forEach((pest: any) => {
-          const chance = pest.baseChance * (1 - protection);
+          const chance = pest.baseChance * (1 - protection) * frequencyMultiplier;
           if (Math.random() < chance) {
             newInfestations.push({
               id: `pest-${Date.now()}-${slotIndex}-${pest.id}`,
@@ -839,6 +842,16 @@ export const useGameState = () => {
         }
       };
     });
+  }, []);
+
+  const updateSettings = useCallback((key: keyof GameState['settings'], value: any) => {
+    setState(prev => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        [key]: value
+      }
+    }));
   }, []);
 
   // Enhancer functions (PGR, Terpen Spray, etc.)
@@ -925,6 +938,7 @@ export const useGameState = () => {
     treatInfestation,
     checkForPests,
     applyEnhancer,
-    driftEnvironmentValues
+    driftEnvironmentValues,
+    updateSettings
   };
 };

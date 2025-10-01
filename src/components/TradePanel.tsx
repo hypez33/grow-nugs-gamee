@@ -49,30 +49,30 @@ export const TradePanel = ({ buds, nugs, offers, nextRefreshAt, onRefresh, onAcc
 
   return (
     <div className="space-y-4">
-      <Card className="p-4 flex items-center justify-between bg-card/80 backdrop-blur">
+      <Card className="p-4 flex items-center justify-between bg-card/80 backdrop-blur transition-all hover:border-primary/30 hover:shadow-lg animate-fade-in">
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Leaf className="w-5 h-5 text-primary" />
+          <div className="flex items-center gap-2 transition-all hover:scale-105">
+            <Leaf className="w-5 h-5 text-primary animate-pulse" />
             <div>
               <p className="text-xs text-muted-foreground">Buds</p>
               <p className="text-xl font-bold">{buds}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Coins className="w-5 h-5 text-accent" />
+          <div className="flex items-center gap-2 transition-all hover:scale-105">
+            <Coins className="w-5 h-5 text-accent animate-pulse" />
             <div>
               <p className="text-xs text-muted-foreground">Nugs</p>
               <p className="text-xl font-bold">{nugs}</p>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 transition-all hover:scale-105">
           <BadgeDollarSign className="w-5 h-5 text-primary" />
           <div className="text-sm">Gesamtwert Angebote: <span className="font-semibold">{totalValue}</span></div>
         </div>
         <div>
-          <Button onClick={onRefresh} disabled={!canRefresh} variant="outline">
-            <RefreshCcw className="w-4 h-4 mr-2" />
+          <Button onClick={onRefresh} disabled={!canRefresh} variant="outline" className="transition-all hover:scale-105">
+            <RefreshCcw className={`w-4 h-4 mr-2 ${!canRefresh && 'animate-spin'}`} />
             {canRefresh ? 'Neue Angebote' : `Warte ${refreshSeconds}s`}
           </Button>
         </div>
@@ -100,29 +100,29 @@ export const TradePanel = ({ buds, nugs, offers, nextRefreshAt, onRefresh, onAcc
           const eff = Math.floor(revenue * (tierCounts.previewMult || 1));
           const canSell = buds >= offer.quantity;
           return (
-            <Card key={offer.id} className="p-4">
+            <Card key={offer.id} className="p-4 transition-all hover:scale-[1.02] hover:border-primary/50 hover:shadow-lg animate-fade-in">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-semibold mb-1">Anfrage</h3>
+                  <h3 className="font-semibold mb-1 transition-colors hover:text-primary">Anfrage</h3>
                   <div className="text-sm text-muted-foreground">Kaufe Buds</div>
                 </div>
-                <Badge variant="secondary">{offer.pricePerBud} / Bud</Badge>
+                <Badge variant="secondary" className="transition-all hover:scale-110">{offer.pricePerBud} / Bud</Badge>
               </div>
               <div className="mt-3 text-sm">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 transition-all hover:scale-105">
                   <Leaf className="w-4 h-4 text-primary" />
                   <span className="font-medium">Menge:</span> {offer.quantity}
                 </div>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-2 mt-1 transition-all hover:scale-105">
                   <Coins className="w-4 h-4 text-accent" />
                   <span className="font-medium">Ertrag:</span> {revenue} Nugs <span className="text-xs text-muted-foreground">(Ø Qual: ~{eff})</span>
                 </div>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-2">
-                <Button onClick={() => onAccept(offer.id)} disabled={!canSell}>
+                <Button onClick={() => onAccept(offer.id)} disabled={!canSell} className="transition-all hover:scale-105">
                   {canSell ? 'Verkaufen' : 'Zu wenig Buds'}
                 </Button>
-                <Button variant="outline" onClick={() => onHaggle?.(offer.id)}>
+                <Button variant="outline" onClick={() => onHaggle?.(offer.id)} className="transition-all hover:scale-105">
                   Verhandeln
                 </Button>
               </div>
@@ -130,7 +130,7 @@ export const TradePanel = ({ buds, nugs, offers, nextRefreshAt, onRefresh, onAcc
           );
         })}
         {offers.length === 0 && (
-          <Card className="p-6 text-center text-sm text-muted-foreground">Keine Angebote verfügbar.</Card>
+          <Card className="p-6 text-center text-sm text-muted-foreground animate-fade-in">Keine Angebote verfügbar.</Card>
         )}
       </div>
     </div>
