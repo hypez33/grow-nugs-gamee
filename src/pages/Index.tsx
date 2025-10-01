@@ -14,7 +14,7 @@ import { StatsPanel } from '@/components/StatsPanel';
 import { BreedingLab } from '@/components/BreedingLab';
 import { EnvironmentControl } from '@/components/EnvironmentControl';
 import { PestControl } from '@/components/PestControl';
-import { TrimmingGameWrapper } from '@/components/TrimmingGameWrapper';
+import { HarvestingGameWrapper } from '@/components/HarvestingGameWrapper';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
@@ -73,7 +73,7 @@ const Index = () => {
   const [shopOpen, setShopOpen] = useState(false);
   const [plantingSlot, setPlantingSlot] = useState<number | null>(null);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  const [trimmingData, setTrimmingData] = useState<{
+  const [harvestingData, setHarvestingData] = useState<{
     slotIndex: number;
     harvest: number;
     quality: number;
@@ -219,30 +219,30 @@ const Index = () => {
 
     const harvest = logic.calculateHarvest(plant);
     
-    // Show trimming game
-    setTrimmingData({
+    // Show harvesting game
+    setHarvestingData({
       slotIndex,
       harvest,
       quality: plant.modifiers.qualityMultiplier
     });
   };
 
-  const handleTrimmingComplete = (finalQuality: number) => {
-    if (!trimmingData) return;
+  const handleHarvestingComplete = (finalQuality: number) => {
+    if (!harvestingData) return;
 
-    // Now send to curing with trimmed quality
-    startCuring(trimmingData.harvest, finalQuality);
-    recordHarvest(trimmingData.harvest);
-    removePlant(trimmingData.slotIndex);
+    // Now send to curing with harvested quality
+    startCuring(harvestingData.harvest, finalQuality);
+    recordHarvest(harvestingData.harvest);
+    removePlant(harvestingData.slotIndex);
 
-    const qualityBonus = ((finalQuality / trimmingData.quality) - 1) * 100;
+    const qualityBonus = ((finalQuality / harvestingData.quality) - 1) * 100;
     
-    toast.success('Ernte & Trimming abgeschlossen!', {
-      description: `${trimmingData.harvest} Buds in Trocknung${qualityBonus > 0 ? ` (+${qualityBonus.toFixed(0)}% Qualität!)` : ''}`,
+    toast.success('Ernte abgeschlossen!', {
+      description: `${harvestingData.harvest} Buds in Trocknung${qualityBonus > 0 ? ` (+${qualityBonus.toFixed(0)}% Qualität!)` : ''}`,
       duration: 5000
     });
 
-    setTrimmingData(null);
+    setHarvestingData(null);
   };
 
   const handleUpdate = (slotIndex: number, elapsed: number, phaseIndex: number) => {
@@ -709,12 +709,12 @@ const Index = () => {
         Auto-Save alle 5s
       </div>
 
-      {/* Trimming Game */}
-      {trimmingData && (
-        <TrimmingGameWrapper
-          budQuantity={trimmingData.harvest}
-          baseQuality={trimmingData.quality}
-          onComplete={handleTrimmingComplete}
+      {/* Harvesting Game */}
+      {harvestingData && (
+        <HarvestingGameWrapper
+          budQuantity={harvestingData.harvest}
+          baseQuality={harvestingData.quality}
+          onComplete={handleHarvestingComplete}
         />
       )}
     </div>
