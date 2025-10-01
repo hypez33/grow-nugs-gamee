@@ -536,6 +536,7 @@ const Index = () => {
         }}
         nugs={state.nugs}
         upgrades={state.upgrades}
+        customStrains={state.breeding.customStrains}
         onBuySeed={handleBuySeed}
         onBuyUpgrade={handleBuyUpgrade}
       />

@@ -3,17 +3,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
-import { STRAINS, getRarityColor } from '@/data/strains';
+import { STRAINS, getRarityColor, Strain } from '@/data/strains';
 import { Sprout, Package, ArrowUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { UPGRADES, getUpgradePrice } from '@/data/upgrades';
 import nugIcon from '@/assets/ui/nug-icon.png';
+import { CustomStrain } from '@/data/breeding';
 
 interface ShopModalProps {
   open: boolean;
   onClose: () => void;
   nugs: number;
   upgrades: Record<string, number>;
+  customStrains?: CustomStrain[];
   onBuySeed: (strainId: string) => void;
   onBuyUpgrade: (upgradeId: string) => void;
 }
@@ -23,10 +25,13 @@ export const ShopModal = ({
   onClose,
   nugs,
   upgrades,
+  customStrains = [],
   onBuySeed,
   onBuyUpgrade
 }: ShopModalProps) => {
   const [selectedSoil, setSelectedSoil] = useState<'basic' | 'light-mix' | 'all-mix'>('basic');
+  
+  const allStrains: (Strain | CustomStrain)[] = [...STRAINS, ...customStrains];
 
   const soilPrices = {
     basic: 0,
@@ -92,15 +97,17 @@ export const ShopModal = ({
 
             {/* Seeds */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {STRAINS.map((strain) => {
+              {allStrains.map((strain) => {
                 const totalCost = strain.seedPrice + soilPrices[selectedSoil];
                 const canAfford = nugs >= totalCost;
 
                 return (
                   <Card key={strain.id} className="p-4 hover:border-primary/50 transition-all">
                     <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="font-bold">{strain.name}</h3>
+                      <div className="flex-1 min-w-0 mr-2">
+                        <h3 className={`font-bold ${strain.name.length > 30 ? 'text-sm' : strain.name.length > 20 ? 'text-base' : 'text-lg'}`}>
+                          {strain.name}
+                        </h3>
                         <Badge variant="outline" className={getRarityColor(strain.rarity)}>
                           {strain.rarity}
                         </Badge>
