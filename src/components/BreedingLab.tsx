@@ -8,6 +8,7 @@ import { STRAINS, Strain } from '@/data/strains';
 import { PHENOTYPES, CLONE_COST, MOTHER_PLANT_COST, CustomStrain } from '@/data/breeding';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { BreedingSuccessModal } from './BreedingSuccessModal';
 
 interface BreedingLabProps {
   nugs: number;
@@ -33,12 +34,24 @@ export const BreedingLab = ({
   const [selectedParent1, setSelectedParent1] = useState<string | null>(null);
   const [selectedParent2, setSelectedParent2] = useState<string | null>(null);
   const [isBreeding, setIsBreeding] = useState(false);
+  const [newStrain, setNewStrain] = useState<CustomStrain | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleBreed = () => {
     if (!selectedParent1 || !selectedParent2) return;
     setIsBreeding(true);
     setTimeout(() => {
       onBreed(selectedParent1, selectedParent2);
+      
+      // Get the newly created strain (last in customStrains array after a short delay)
+      setTimeout(() => {
+        const latestStrain = customStrains[customStrains.length - 1];
+        if (latestStrain) {
+          setNewStrain(latestStrain);
+          setShowSuccessModal(true);
+        }
+      }, 100);
+      
       setIsBreeding(false);
       setSelectedParent1(null);
       setSelectedParent2(null);
@@ -51,7 +64,14 @@ export const BreedingLab = ({
   ];
 
   return (
-    <div className="space-y-6">
+    <>
+      <BreedingSuccessModal 
+        strain={newStrain}
+        open={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+      />
+      
+      <div className="space-y-6">
       {/* Breeding Section */}
       <Card className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20 transition-all hover:shadow-lg animate-fade-in">
         <div className="flex items-center gap-3 mb-4">
@@ -340,6 +360,7 @@ export const BreedingLab = ({
           ))}
         </div>
       </Card>
-    </div>
+      </div>
+    </>
   );
 };

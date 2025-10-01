@@ -102,8 +102,41 @@ export const generateStrainName = (generation: number): string => {
   return parts.join(' ');
 };
 
-// Mögliche Mutationen mit extremen Boni
+// Mögliche Mutationen mit extremen Boni (200-300%!)
 export const MUTATIONS: Mutation[] = [
+  // LEGENDARY Tier - Game Breaking (200-300%)
+  {
+    id: 'megalodon',
+    name: '🦈 Megalodon Gene',
+    type: 'yield',
+    bonus: 4.0, // +300% Ertrag!!!
+    description: 'Gigantische Monster-Erträge!',
+    rarity: 'legendary'
+  },
+  {
+    id: 'supersonic',
+    name: '⚡ Supersonic Growth',
+    type: 'speed',
+    bonus: 0.3, // 70% schneller!!!
+    description: 'Wächst in Lichtgeschwindigkeit!',
+    rarity: 'legendary'
+  },
+  {
+    id: 'midas-touch',
+    name: '👑 Midas Touch',
+    type: 'quality',
+    bonus: 3.5, // +250% Qualität!!!
+    description: 'Pures Gold in Pflanzenform!',
+    rarity: 'legendary'
+  },
+  {
+    id: 'omnipotent',
+    name: '✨ Omnipotent Gene',
+    type: 'super',
+    bonus: 3.0, // +200% auf ALLES!!!
+    description: 'Göttliche Perfektion!',
+    rarity: 'legendary'
+  },
   {
     id: 'godzilla',
     name: '🦖 Godzilla Gene',
@@ -119,6 +152,16 @@ export const MUTATIONS: Mutation[] = [
     bonus: 2.0, // +100% Qualität!
     description: 'Kristallklare Perfektion!',
     rarity: 'legendary'
+  },
+  
+  // EPIC Tier - Very Strong (80-150%)
+  {
+    id: 'titan',
+    name: '⚔️ Titan Blood',
+    type: 'yield',
+    bonus: 2.2, // +120% Ertrag
+    description: 'Titanische Kraft!',
+    rarity: 'epic'
   },
   {
     id: 'rocket',
@@ -145,12 +188,22 @@ export const MUTATIONS: Mutation[] = [
     rarity: 'epic'
   },
   {
+    id: 'phoenix',
+    name: '🔥 Phoenix Gene',
+    type: 'super',
+    bonus: 1.8, // +80% auf ALLES
+    description: 'Aus der Asche wiedergeboren!',
+    rarity: 'epic'
+  },
+  
+  // RARE Tier - Good (40-60%)
+  {
     id: 'godmode',
     name: '✨ God Mode',
     type: 'super',
     bonus: 1.5, // +50% auf ALLES
     description: 'Perfekte Genetik!',
-    rarity: 'legendary'
+    rarity: 'rare'
   },
   {
     id: 'turbo',
@@ -167,12 +220,20 @@ export const MUTATIONS: Mutation[] = [
     bonus: 1.5, // +50% Ertrag
     description: 'Kräftiges Wachstum',
     rarity: 'rare'
+  },
+  {
+    id: 'crystal',
+    name: '💠 Crystal Gene',
+    type: 'quality',
+    bonus: 1.4, // +40% Qualität
+    description: 'Kristalline Struktur',
+    rarity: 'rare'
   }
 ];
 
 const getMutationChance = (generation: number): number => {
-  // Base chance: 5%, increases with generation
-  return Math.min(0.05 + (generation * 0.02), 0.25); // Max 25% bei hohen Generationen
+  // Base chance: 8%, increases with generation (höher für mehr Mutationen!)
+  return Math.min(0.08 + (generation * 0.03), 0.35); // Max 35% bei hohen Generationen
 };
 
 const rollForMutation = (generation: number): Mutation | undefined => {
@@ -180,15 +241,18 @@ const rollForMutation = (generation: number): Mutation | undefined => {
   
   if (Math.random() > chance) return undefined;
   
-  // Weighted random selection based on rarity
+  // Weighted random selection based on rarity (höhere Legendary-Chance!)
   const roll = Math.random();
   let availableMutations: Mutation[];
   
-  if (roll < 0.02) { // 2% legendary
+  // Generation bonus für Legendary (höhere Gen = höhere Legendary-Chance)
+  const legendaryBonus = Math.min(generation * 0.02, 0.08); // Max +8%
+  
+  if (roll < (0.05 + legendaryBonus)) { // 5-13% legendary (je nach Generation!)
     availableMutations = MUTATIONS.filter(m => m.rarity === 'legendary');
-  } else if (roll < 0.15) { // 13% epic
+  } else if (roll < 0.25) { // 20% epic
     availableMutations = MUTATIONS.filter(m => m.rarity === 'epic');
-  } else { // 85% rare
+  } else { // 75% rare
     availableMutations = MUTATIONS.filter(m => m.rarity === 'rare');
   }
   
@@ -239,7 +303,9 @@ export const breedTwoStrains = (parent1: CustomStrain, parent2: CustomStrain): C
     rarity = Math.random() > 0.8 ? 'rare' : 'common';
   }
   
-  const seedPrice = Math.round((parent1.seedPrice + parent2.seedPrice) / 2 * (mutation ? 2.0 : 1.2));
+  // Gezüchtete Strains sind 40-60% günstiger! (Außer bei Mutation)
+  const priceReduction = mutation ? 1.0 : (0.4 + Math.random() * 0.2); // 40-60% günstiger
+  const seedPrice = Math.round((parent1.seedPrice + parent2.seedPrice) / 2 * priceReduction);
   
   // Mix terpene profiles
   const terpeneProfile: TerpeneProfile = {};

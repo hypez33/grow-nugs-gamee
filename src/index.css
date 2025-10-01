@@ -322,3 +322,84 @@ All colors MUST be HSL.
 .clickable-card:active {
   transform: scale(0.98);
 }
+
+/* Confetti animations */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(var(--rotation, 720deg));
+    opacity: 0;
+  }
+}
+
+.confetti-particle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  animation: confetti-fall linear forwards;
+  pointer-events: none;
+}
+
+/* Mutation burst effect */
+@keyframes mutation-burst {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(2);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+.mutation-burst {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, hsl(45 85% 55% / 0.4) 0%, transparent 70%);
+  animation: mutation-burst 1s ease-out;
+  pointer-events: none;
+}
+
+/* Mutation glow pulse */
+@keyframes mutation-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 40px hsl(45 85% 55% / 0.4), 0 0 80px hsl(45 85% 55% / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 60px hsl(45 85% 55% / 0.6), 0 0 120px hsl(45 85% 55% / 0.3);
+  }
+}
+
+.mutation-glow {
+  position: absolute;
+  inset: -20px;
+  background: transparent;
+  animation: mutation-glow-pulse 2s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.mutation-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.mutation-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    hsl(45 100% 60% / 0.3) 50%,
+    transparent 70%
+  );
+  animation: shimmer 2s ease-in-out infinite;
+}
