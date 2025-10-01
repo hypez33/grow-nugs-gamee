@@ -49,6 +49,8 @@ const Index = () => {
     generateTradeOffers,
     acceptTradeOffer,
     haggleTradeOffer,
+    tradeWithDealer,
+    createContract,
     claimQuestReward,
     triggerRandomEvent,
     tickEvent,
@@ -550,7 +552,24 @@ const Index = () => {
                   offers={state.trade.offers}
                   nextRefreshAt={state.trade.nextRefreshAt}
                   inventoryBatches={state.inventory?.batches || []}
+                  reputation={state.trade.reputation}
+                  dealerRelationships={state.trade.dealerRelationships}
+                  activeContracts={state.trade.activeContracts}
+                  totalRevenue={state.trade.totalRevenue}
                   onRefresh={generateTradeOffers}
+                  onTradeWithDealer={(dealerId, quantity) => {
+                    const dealer = state.trade.dealerRelationships.find(r => r.dealerId === dealerId);
+                    const ok = tradeWithDealer(dealerId, quantity, 1.5);
+                    if (ok) {
+                      toast.success('Deal erfolgreich!', { description: `${quantity} Buds verkauft!` });
+                    }
+                  }}
+                  onCreateContract={(dealerId, quantity, duration) => {
+                    const ok = createContract(dealerId, quantity, duration, 1.5, 'any');
+                    if (ok) {
+                      toast.success('Vertrag abgeschlossen!', { description: `${duration} Wochen Liefervertrag aktiv` });
+                    }
+                  }}
                   onAccept={(id) => {
                     const offer = state.trade.offers.find(o => o.id === id);
                     const ok = acceptTradeOffer(id);

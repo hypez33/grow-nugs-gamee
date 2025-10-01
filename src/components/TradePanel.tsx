@@ -1,8 +1,15 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useEffect, useMemo, useState } from 'react';
-import { Coins, Leaf, RefreshCcw, BadgeDollarSign } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState } from 'react';
+import { DealerCard } from './DealerCard';
+import { DealerDetails } from './DealerDetails';
+import { ReputationDisplay } from './ReputationDisplay';
+import { DEALERS } from '@/data/dealers';
+import { DealerRelationship } from '@/data/dealers';
+import { QualityTier } from '@/hooks/useGameState';
+import { Users, TrendingUp, FileText } from 'lucide-react';
 
 export interface TradeOfferView {
   id: string;
@@ -18,121 +25,209 @@ interface TradePanelProps {
   onRefresh: () => void;
   onAccept: (offerId: string) => void;
   onHaggle?: (offerId: string) => void;
-  inventoryBatches?: { quantity: number; qualityTier: 'C'|'B'|'A'|'S'; qualityMultiplier: number; }[];
+  inventoryBatches?: { quantity: number; qualityTier: QualityTier; qualityMultiplier: number; }[];
+  reputation: number;
+  dealerRelationships: DealerRelationship[];
+  activeContracts: any[];
+  totalRevenue: number;
+  onTradeWithDealer: (dealerId: string, quantity: number) => void;
+  onCreateContract: (dealerId: string, quantity: number, duration: number) => void;
 }
 
-export const TradePanel = ({ buds, nugs, offers, nextRefreshAt, onRefresh, onAccept, onHaggle, inventoryBatches = [] }: TradePanelProps) => {
-  const [now, setNow] = useState(Date.now());
+export const TradePanel = ({ 
+  buds, 
+  nugs, 
+  offers, 
+  nextRefreshAt, 
+  onRefresh, 
+  onAccept, 
+  onHaggle, 
+  inventoryBatches = [],
+  reputation,
+  dealerRelationships,
+  activeContracts,
+  totalRevenue,
+  onTradeWithDealer,
+  onCreateContract,
+}: TradePanelProps) => {
+  const [selectedDealer, setSelectedDealer] = useState<string | null>(null);
 
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 500);
-    return () => clearInterval(t);
-  }, []);
+  const dealer = selectedDealer ? DEALERS.find(d => d.id === selectedDealer) : null;
+  const dealerRel = dealerRelationships.find(r => r.dealerId === selectedDealer);
 
-  const refreshCooldownMs = Math.max(0, nextRefreshAt - now);
-  const refreshSeconds = Math.ceil(refreshCooldownMs / 1000);
-  const canRefresh = refreshCooldownMs === 0;
+  const handleTrade = (dealerId: string, quantity: number) => {
+    onTradeWithDealer(dealerId, quantity);
+    setSelectedDealer(null);
+  };
 
-  const totalValue = useMemo(() => {
-    return offers.reduce((sum, o) => sum + Math.floor(o.quantity * o.pricePerBud), 0);
-  }, [offers]);
-
-  const tierCounts = useMemo(() => {
-    const c = { S:0, A:0, B:0, C:0 } as Record<'S'|'A'|'B'|'C', number>;
-    for (const b of inventoryBatches) c[b.qualityTier] += b.quantity;
-    const total = Object.values(c).reduce((a,b)=>a+b,0) || 1;
-    const previewMult = inventoryBatches.length>0
-      ? (inventoryBatches.reduce((acc,b)=> acc + b.quantity*b.qualityMultiplier, 0) / total)
-      : 1;
-    return { c, total, previewMult };
-  }, [inventoryBatches]);
+  const handleContract = (dealerId: string, quantity: number, duration: number) => {
+    onCreateContract(dealerId, quantity, duration);
+    setSelectedDealer(null);
+  };
 
   return (
-    <div className="space-y-4">
-      <Card className="p-4 flex items-center justify-between bg-card/80 backdrop-blur transition-all hover:border-primary/30 hover:shadow-lg animate-fade-in">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 transition-all hover:scale-105">
-            <Leaf className="w-5 h-5 text-primary animate-pulse" />
-            <div>
-              <p className="text-xs text-muted-foreground">Buds</p>
-              <p className="text-xl font-bold">{buds}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 transition-all hover:scale-105">
-            <Coins className="w-5 h-5 text-accent animate-pulse" />
-            <div>
-              <p className="text-xs text-muted-foreground">Nugs</p>
-              <p className="text-xl font-bold">{nugs}</p>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 transition-all hover:scale-105">
-          <BadgeDollarSign className="w-5 h-5 text-primary" />
-          <div className="text-sm">Gesamtwert Angebote: <span className="font-semibold">{totalValue}</span></div>
-        </div>
-        <div>
-          <Button onClick={onRefresh} disabled={!canRefresh} variant="outline" className="transition-all hover:scale-105">
-            <RefreshCcw className={`w-4 h-4 mr-2 ${!canRefresh && 'animate-spin'}`} />
-            {canRefresh ? 'Neue Angebote' : `Warte ${refreshSeconds}s`}
-          </Button>
-        </div>
-      </Card>
-
-      {/* Inventory quality summary */}
-      {inventoryBatches.length > 0 && (
-        <Card className="p-3 bg-muted/30">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">Qualität im Lager:</span>
-              <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">S {tierCounts.c.S}</span>
-              <span className="px-2 py-0.5 rounded bg-lime-500/20 text-lime-300">A {tierCounts.c.A}</span>
-              <span className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300">B {tierCounts.c.B}</span>
-              <span className="px-2 py-0.5 rounded bg-zinc-500/20 text-zinc-300">C {tierCounts.c.C}</span>
-            </div>
-            <div className="text-muted-foreground">Preisfaktor Ø: {tierCounts.previewMult.toFixed(2)}x</div>
-          </div>
-        </Card>
+    <div className="space-y-4 animate-fade-in">
+      {/* Dealer Details Overlay */}
+      {dealer && (
+        <DealerDetails
+          dealer={dealer}
+          relationship={dealerRel}
+          playerBuds={buds}
+          playerNugs={nugs}
+          inventoryBatches={inventoryBatches}
+          onTrade={handleTrade}
+          onContract={handleContract}
+          onClose={() => setSelectedDealer(null)}
+        />
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {offers.map((offer) => {
-          const revenue = Math.floor(offer.quantity * offer.pricePerBud);
-          const eff = Math.floor(revenue * (tierCounts.previewMult || 1));
-          const canSell = buds >= offer.quantity;
-          return (
-            <Card key={offer.id} className="p-4 transition-all hover:scale-[1.02] hover:border-primary/50 hover:shadow-lg animate-fade-in">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-semibold mb-1 transition-colors hover:text-primary">Anfrage</h3>
-                  <div className="text-sm text-muted-foreground">Kaufe Buds</div>
-                </div>
-                <Badge variant="secondary" className="transition-all hover:scale-110">{offer.pricePerBud} / Bud</Badge>
-              </div>
-              <div className="mt-3 text-sm">
-                <div className="flex items-center gap-2 transition-all hover:scale-105">
-                  <Leaf className="w-4 h-4 text-primary" />
-                  <span className="font-medium">Menge:</span> {offer.quantity}
-                </div>
-                <div className="flex items-center gap-2 mt-1 transition-all hover:scale-105">
-                  <Coins className="w-4 h-4 text-accent" />
-                  <span className="font-medium">Ertrag:</span> {revenue} Nugs <span className="text-xs text-muted-foreground">(Ø Qual: ~{eff})</span>
-                </div>
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <Button onClick={() => onAccept(offer.id)} disabled={!canSell} className="transition-all hover:scale-105">
-                  {canSell ? 'Verkaufen' : 'Zu wenig Buds'}
-                </Button>
-                <Button variant="outline" onClick={() => onHaggle?.(offer.id)} className="transition-all hover:scale-105">
-                  Verhandeln
-                </Button>
-              </div>
+      {/* Reputation Display */}
+      <ReputationDisplay 
+        reputation={reputation} 
+        totalDeals={dealerRelationships.reduce((sum, r) => sum + r.totalDeals, 0)}
+        totalRevenue={totalRevenue}
+      />
+
+      {/* Tabs for different trade sections */}
+      <Tabs defaultValue="dealers" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="dealers" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Dealer-Netzwerk
+          </TabsTrigger>
+          <TabsTrigger value="legacy" className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Schnelle Deals
+          </TabsTrigger>
+          <TabsTrigger value="contracts" className="flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Verträge ({activeContracts.length})
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Dealer Network Tab */}
+        <TabsContent value="dealers" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {DEALERS.map(dealer => {
+              const relationship = dealerRelationships.find(r => r.dealerId === dealer.id);
+              return (
+                <DealerCard
+                  key={dealer.id}
+                  dealer={dealer}
+                  relationship={relationship}
+                  playerReputation={reputation}
+                  isAvailable={true}
+                  onSelect={setSelectedDealer}
+                />
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        {/* Legacy Quick Deals Tab */}
+        <TabsContent value="legacy" className="space-y-4">
+          <Card className="p-3 bg-muted/30">
+            <p className="text-sm text-muted-foreground text-center">
+              Anonyme Schnelldeals - keine Reputation, keine Beziehungen
+            </p>
+          </Card>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {offers.map((offer) => {
+              const tierCounts = inventoryBatches.reduce((acc, b) => {
+                acc[b.qualityTier] = (acc[b.qualityTier] || 0) + b.quantity;
+                return acc;
+              }, {} as Record<QualityTier, number>);
+              
+              const total = Object.values(tierCounts).reduce((a,b)=>a+b,0) || 1;
+              const previewMult = inventoryBatches.length > 0
+                ? (inventoryBatches.reduce((acc,b)=> acc + b.quantity*b.qualityMultiplier, 0) / total)
+                : 1;
+              
+              const revenue = Math.floor(offer.quantity * offer.pricePerBud);
+              const eff = Math.floor(revenue * previewMult);
+              const canSell = buds >= offer.quantity;
+              
+              return (
+                <Card key={offer.id} className="p-4 transition-all hover:scale-[1.02] hover:border-primary/50 hover:shadow-lg">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="font-semibold">Anonyme Anfrage</h3>
+                      <div className="text-sm text-muted-foreground">Einmaliger Deal</div>
+                    </div>
+                    <Badge variant="secondary">{offer.pricePerBud} / Bud</Badge>
+                  </div>
+                  <div className="space-y-2 text-sm mb-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Menge:</span>
+                      <span className="font-semibold">{offer.quantity} Buds</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Ertrag:</span>
+                      <span className="font-semibold text-accent">{eff} Nugs</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button onClick={() => onAccept(offer.id)} disabled={!canSell} size="sm">
+                      {canSell ? 'Verkaufen' : 'Zu wenig'}
+                    </Button>
+                    <Button variant="outline" onClick={() => onHaggle?.(offer.id)} size="sm">
+                      Verhandeln
+                    </Button>
+                  </div>
+                </Card>
+              );
+            })}
+            {offers.length === 0 && (
+              <Card className="p-6 text-center text-sm text-muted-foreground col-span-2">
+                Keine anonymen Angebote verfügbar.
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Contracts Tab */}
+        <TabsContent value="contracts" className="space-y-4">
+          {activeContracts.length === 0 ? (
+            <Card className="p-8 text-center">
+              <p className="text-muted-foreground">
+                Keine aktiven Verträge. Erreiche Level 3 mit einem Dealer für Langzeit-Verträge!
+              </p>
             </Card>
-          );
-        })}
-        {offers.length === 0 && (
-          <Card className="p-6 text-center text-sm text-muted-foreground animate-fade-in">Keine Angebote verfügbar.</Card>
-        )}
-      </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {activeContracts.map(contract => {
+                const dealer = DEALERS.find(d => d.id === contract.dealerId);
+                return (
+                  <Card key={contract.id} className="p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="text-2xl">{dealer?.avatar}</div>
+                      <div>
+                        <h4 className="font-semibold">{dealer?.name}</h4>
+                        <p className="text-xs text-muted-foreground">{contract.deliverySchedule}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Fortschritt:</span>
+                        <span>{contract.completedDeliveries}/{contract.totalDeliveries}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Pro Lieferung:</span>
+                        <span>{contract.quantity} Buds</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Preis:</span>
+                        <span className="text-accent">{contract.pricePerBud}/Bud</span>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

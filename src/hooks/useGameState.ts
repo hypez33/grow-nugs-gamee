@@ -4,6 +4,7 @@ import { EnvironmentState } from '@/data/environment';
 import { breedTwoStrains, CustomStrain } from '@/data/breeding';
 import { PESTS, TREATMENTS, getPestProtection } from '@/data/pests';
 import { ENHANCERS } from '@/data/enhancers';
+import { DealerRelationship, TradeContract } from '@/data/dealers';
 
 export interface PlantModifiers {
   waterStacks: number;
@@ -114,6 +115,10 @@ export interface GameState {
   trade: {
     offers: TradeOffer[];
     nextRefreshAt: number;
+    reputation: number;
+    dealerRelationships: DealerRelationship[];
+    activeContracts: TradeContract[];
+    totalRevenue: number;
   };
   event?: GameEvent;
   quests: Quest[];
@@ -186,6 +191,10 @@ const INITIAL_STATE: GameState = {
   trade: {
     offers: [],
     nextRefreshAt: 0,
+    reputation: 0,
+    dealerRelationships: [],
+    activeContracts: [],
+    totalRevenue: 0,
   },
   event: undefined,
   quests: DEFAULT_QUESTS,
@@ -241,7 +250,14 @@ export const useGameState = () => {
           curing: { ...(INITIAL_STATE as any).curing, ...(parsed as any)?.curing },
           inventory: { ...(INITIAL_STATE as any).inventory, ...(parsed as any)?.inventory },
           stats: { ...INITIAL_STATE.stats, ...(parsed?.stats || {}) },
-          trade: { ...INITIAL_STATE.trade, ...(parsed?.trade || {}) },
+          trade: { 
+            ...INITIAL_STATE.trade, 
+            ...(parsed?.trade || {}),
+            reputation: parsed?.trade?.reputation || 0,
+            dealerRelationships: parsed?.trade?.dealerRelationships || [],
+            activeContracts: parsed?.trade?.activeContracts || [],
+            totalRevenue: parsed?.trade?.totalRevenue || 0,
+          },
           quests: parsed?.quests || DEFAULT_QUESTS,
           breeding: { 
             ...INITIAL_STATE.breeding, 
@@ -489,6 +505,7 @@ export const useGameState = () => {
       return {
         ...prev,
         trade: {
+          ...prev.trade,
           offers,
           nextRefreshAt: now + 30000,
         },
@@ -564,6 +581,119 @@ export const useGameState = () => {
       return {
         ...prev,
         trade: { ...prev.trade, offers },
+      };
+    });
+    return success;
+  }, []);
+
+  // New Dealer System Functions
+  const tradeWithDealer = useCallback((dealerId: string, quantity: number, priceMultiplier: number): boolean => {
+    let success = false;
+    setState(prev => {
+      const totalAvail = prev.buds;
+      if (totalAvail < quantity) return prev;
+
+      let remaining = quantity;
+      let revenueAcc = 0;
+      const batches = [...prev.inventory.batches].sort((a,b) => b.qualityMultiplier - a.qualityMultiplier);
+      
+      for (let i=0; i<batches.length && remaining>0; i++) {
+        const b = batches[i];
+        if (b.quantity <= 0) continue;
+        const sell = Math.min(b.quantity, remaining);
+        revenueAcc += Math.floor(sell * 3 * priceMultiplier * b.qualityMultiplier);
+        b.quantity -= sell;
+        remaining -= sell;
+      }
+
+      if (prev.inventory.batches.length === 0) {
+        revenueAcc = Math.floor(quantity * 3 * priceMultiplier);
+      }
+
+      const cleaned = batches.filter(b => b.quantity > 0);
+      
+      // Update or create relationship
+      const relationships = [...prev.trade.dealerRelationships];
+      const relIndex = relationships.findIndex(r => r.dealerId === dealerId);
+      
+      if (relIndex >= 0) {
+        const rel = relationships[relIndex];
+        const newLevel = Math.min(10, Math.floor((rel.totalDeals + 1) / 3));
+        relationships[relIndex] = {
+          ...rel,
+          relationshipLevel: newLevel,
+          totalDeals: rel.totalDeals + 1,
+          lastDealAt: Date.now(),
+          loyaltyBonus: Math.min(0.3, newLevel * 0.03),
+        };
+      } else {
+        relationships.push({
+          dealerId,
+          relationshipLevel: 0,
+          totalDeals: 1,
+          lastDealAt: Date.now(),
+          loyaltyBonus: 0,
+        });
+      }
+
+      // Increase reputation
+      const repGain = Math.floor(quantity / 10) + Math.floor(revenueAcc / 100);
+
+      success = true;
+      return {
+        ...prev,
+        buds: prev.buds - quantity,
+        nugs: prev.nugs + revenueAcc,
+        inventory: { batches: cleaned },
+        trade: {
+          ...prev.trade,
+          reputation: Math.min(1000, prev.trade.reputation + repGain),
+          dealerRelationships: relationships,
+          totalRevenue: prev.trade.totalRevenue + revenueAcc,
+        },
+        stats: {
+          ...prev.stats,
+          totalNugsEarned: prev.stats.totalNugsEarned + revenueAcc,
+          totalBudsSold: prev.stats.totalBudsSold + quantity,
+          totalTrades: prev.stats.totalTrades + 1,
+        },
+        quests: prev.quests.map(q =>
+          q.type === 'sell' && !q.claimed
+            ? { ...q, progress: Math.min(q.goal, q.progress + quantity) }
+            : q
+        ),
+      } as GameState;
+    });
+    return success;
+  }, []);
+
+  const createContract = useCallback((dealerId: string, quantity: number, duration: number, priceMultiplier: number, strainId: string): boolean => {
+    let success = false;
+    setState(prev => {
+      const contractId = `contract-${Date.now()}-${dealerId}`;
+      const totalDeliveries = duration * 1; // weekly for now
+      
+      const newContract: TradeContract = {
+        id: contractId,
+        dealerId,
+        quantity,
+        strainId,
+        pricePerBud: priceMultiplier * 3 * 1.1, // 10% bonus for contracts
+        duration,
+        deliverySchedule: 'weekly',
+        startedAt: Date.now(),
+        nextDeliveryAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
+        completedDeliveries: 0,
+        totalDeliveries,
+      };
+
+      success = true;
+      return {
+        ...prev,
+        trade: {
+          ...prev.trade,
+          activeContracts: [...prev.trade.activeContracts, newContract],
+        },
       };
     });
     return success;
@@ -963,6 +1093,8 @@ export const useGameState = () => {
     generateTradeOffers,
     acceptTradeOffer,
     haggleTradeOffer,
+    tradeWithDealer,
+    createContract,
     claimQuestReward,
     recordWaterAction,
     recordPerfectWater,
