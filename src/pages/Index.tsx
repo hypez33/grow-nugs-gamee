@@ -385,6 +385,7 @@ const Index = () => {
                   nugs={state.nugs}
                   upgrades={state.upgrades}
                   pests={state.pests.infestations}
+                  customStrains={state.breeding.customStrains}
                   onPlant={handlePlantClick}
                   onWater={handleWater}
                   onFertilize={handleFertilize}

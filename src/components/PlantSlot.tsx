@@ -35,6 +35,7 @@ interface PlantSlotProps {
   nugs: number;
   upgrades: Record<string, number>;
   pests?: PestInfestation[];
+  customStrains?: any[];
   onPlant: (slotIndex: number) => void;
   onWater: (slotIndex: number, skillBonus?: number) => void;
   onFertilize: (slotIndex: number) => void;
@@ -49,6 +50,7 @@ export const PlantSlot = ({
   nugs,
   upgrades,
   pests,
+  customStrains = [],
   onPlant,
   onWater,
   onFertilize,
@@ -56,7 +58,7 @@ export const PlantSlot = ({
   onUpdate,
   perfectWindowMs = 2500
 }: PlantSlotProps) => {
-  const logic = usePlantLogic(upgrades);
+  const logic = usePlantLogic(upgrades, 1, customStrains);
   const [localElapsed, setLocalElapsed] = useState(plant?.elapsedInPhase || 0);
   const [gameOpen, setGameOpen] = useState(false);
   const [slider, setSlider] = useState(0);
