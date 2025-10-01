@@ -8,6 +8,13 @@ import { DealerRelationship, TradeContract } from '@/data/dealers';
 import { TerpeneProfile, calculateTerpeneModifiers, getDominantTerpenes } from '@/data/terpenes';
 import { MarketData, INITIAL_MARKET_DATA, MarketCondition, AICompetitor, AI_COMPETITORS, decayMarketSupply, simulateCompetitorActions, calculateDynamicPrice } from '@/data/market';
 import { ActiveResearch, calculateResearchPoints, getAvailableResearch, calculateResearchBonuses } from '@/data/research';
+import { Employee } from '@/data/employees';
+
+export interface AutomationState {
+  isAutomated: boolean;
+  assignedEmployeeId?: string;
+  autoReplantStrainId?: string;
+}
 
 export interface PlantModifiers {
   waterStacks: number;
@@ -42,6 +49,8 @@ export interface Plant {
   plantedAt: number;
   modifiers: PlantModifiers;
   environment: PlantEnvironment;
+  automation?: AutomationState;
+  clickBoosts?: number; // Total seconds boosted by clicking
 }
 
 export interface MotherPlant {
@@ -164,6 +173,7 @@ export interface GameState {
     completedResearch: string[];
     activeResearch: ActiveResearch | null;
   };
+  employees: string[]; // IDs of hired employees
 }
 
 const DEFAULT_QUESTS: Quest[] = [
@@ -257,7 +267,8 @@ const INITIAL_STATE: GameState = {
     points: 0,
     completedResearch: [],
     activeResearch: null
-  }
+  },
+  employees: []
 };
 
 const STORAGE_KEY = 'cannabis-grower-save';
@@ -1287,6 +1298,66 @@ export const useGameState = () => {
     });
   }, []);
 
+  const hireEmployee = useCallback((employeeId: string): boolean => {
+    let success = false;
+    setState(prev => {
+      if (prev.employees.includes(employeeId)) {
+        return prev; // Already hired
+      }
+      success = true;
+      return {
+        ...prev,
+        employees: [...prev.employees, employeeId],
+      };
+    });
+    return success;
+  }, []);
+
+  const assignEmployee = useCallback((slotIndex: number, employeeId: string | undefined) => {
+    setState(prev => {
+      const newSlots = [...prev.slots];
+      const plant = newSlots[slotIndex];
+      if (!plant) return prev;
+      
+      newSlots[slotIndex] = {
+        ...plant,
+        automation: {
+          isAutomated: !!employeeId,
+          assignedEmployeeId: employeeId,
+          autoReplantStrainId: employeeId ? plant.strainId : undefined,
+        }
+      };
+      return { ...prev, slots: newSlots };
+    });
+  }, []);
+
+  const boostPlantGrowth = useCallback((slotIndex: number, seconds: number): boolean => {
+    let success = false;
+    setState(prev => {
+      const plant = prev.slots[slotIndex];
+      if (!plant) return prev;
+      
+      const currentBoosts = plant.clickBoosts || 0;
+      const maxBoosts = 50; // Max 50 seconds per plant
+      
+      if (currentBoosts >= maxBoosts) {
+        return prev; // Max boosts reached
+      }
+      
+      const newBoosts = Math.min(maxBoosts, currentBoosts + seconds);
+      const newSlots = [...prev.slots];
+      newSlots[slotIndex] = {
+        ...plant,
+        clickBoosts: newBoosts,
+        elapsedInPhase: plant.elapsedInPhase + seconds,
+      };
+      
+      success = true;
+      return { ...prev, slots: newSlots };
+    });
+    return success;
+  }, []);
+
   return {
     state,
     manualSave,
@@ -1332,6 +1403,9 @@ export const useGameState = () => {
     progressResearch,
     cancelResearch,
     getResearchBonuses,
-    updatePlantTerpenes
+    updatePlantTerpenes,
+    hireEmployee,
+    assignEmployee,
+    boostPlantGrowth,
   };
 };

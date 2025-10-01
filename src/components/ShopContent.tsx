@@ -8,21 +8,27 @@ import { UPGRADES, getUpgradePrice } from '@/data/upgrades';
 import { Button } from '@/components/ui/button';
 import nugIcon from '@/assets/ui/nug-icon.png';
 import { CustomStrain } from '@/data/breeding';
+import { EMPLOYEES } from '@/data/employees';
+import { Users } from 'lucide-react';
 
 interface ShopContentProps {
   nugs: number;
   upgrades: Record<string, number>;
   customStrains?: CustomStrain[];
+  employees?: string[]; // IDs of hired employees
   onBuySeed: (strainId: string) => void;
   onBuyUpgrade: (upgradeId: string) => void;
+  onHireEmployee?: (employeeId: string) => void;
 }
 
 export const ShopContent = ({
   nugs,
   upgrades,
   customStrains = [],
+  employees = [],
   onBuySeed,
   onBuyUpgrade,
+  onHireEmployee,
 }: ShopContentProps) => {
   const [selectedSoil, setSelectedSoil] = useState<'basic' | 'light-mix' | 'all-mix'>('basic');
 
@@ -49,9 +55,10 @@ export const ShopContent = ({
       </div>
 
       <Tabs defaultValue="seeds" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="seeds">Samen & Erde</TabsTrigger>
           <TabsTrigger value="upgrades">Upgrades</TabsTrigger>
+          <TabsTrigger value="employees">Mitarbeiter</TabsTrigger>
         </TabsList>
 
         <TabsContent value="seeds" className="space-y-4">
@@ -169,6 +176,61 @@ export const ShopContent = ({
                             <ArrowUp className="w-4 h-4 mr-1" />
                             {price}
                             <img src={nugIcon} alt="Nugs" className="w-4 h-4 ml-1 transition-transform hover:rotate-12" />
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="employees" className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            {EMPLOYEES.map((employee) => {
+              const isHired = employees.includes(employee.id);
+              const canAfford = nugs >= employee.price;
+
+              return (
+                <Card key={employee.id} className="p-4 transition-all hover:scale-[1.02] hover:border-primary/30 hover:shadow-lg animate-fade-in">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-4xl">{employee.avatar}</span>
+                        <div>
+                          <h3 className="font-bold transition-colors hover:text-primary">{employee.name}</h3>
+                          <Badge variant="outline" className="mt-1">
+                            {employee.specialization === 'all' ? 'Allrounder' : 
+                             employee.specialization === 'watering' ? 'Bewässerung' :
+                             employee.specialization === 'fertilizing' ? 'Düngung' :
+                             'Ernte'}
+                          </Badge>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">{employee.description}</p>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <div>
+                          <span className="font-semibold text-foreground">Effizienz:</span> {(employee.efficiency * 100).toFixed(0)}%
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="ml-4">
+                      <Button 
+                        onClick={() => onHireEmployee?.(employee.id)} 
+                        disabled={isHired || !canAfford} 
+                        size="sm" 
+                        className="transition-all hover:scale-110"
+                      >
+                        {isHired ? (
+                          'Angestellt'
+                        ) : (
+                          <>
+                            <Users className="w-4 h-4 mr-1" />
+                            {employee.price}
+                            <img src={nugIcon} alt="Nugs" className="w-4 h-4 ml-1" />
                           </>
                         )}
                       </Button>

@@ -259,3 +259,66 @@ All colors MUST be HSL.
   background-size: 200% 200%;
   animation: gradient-shift 3s ease infinite;
 }
+
+/* Click boost animations */
+@keyframes click-boost {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes sparkle-particle {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--tx), var(--ty)) scale(0);
+  }
+}
+
+@keyframes boost-text {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+}
+
+.click-boost-animation {
+  animation: click-boost 0.3s ease-out;
+}
+
+.sparkle-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: hsl(var(--primary));
+  border-radius: 50%;
+  pointer-events: none;
+  animation: sparkle-particle 0.8s ease-out forwards;
+  box-shadow: 0 0 10px hsl(var(--primary) / 0.8);
+}
+
+.boost-text {
+  position: absolute;
+  font-weight: bold;
+  color: hsl(var(--primary));
+  pointer-events: none;
+  animation: boost-text 1s ease-out forwards;
+  text-shadow: 0 0 10px hsl(var(--primary) / 0.5);
+  font-size: 1.2rem;
+}
+
+.clickable-card {
+  cursor: pointer;
+  user-select: none;
+}
+
+.clickable-card:active {
+  transform: scale(0.98);
+}

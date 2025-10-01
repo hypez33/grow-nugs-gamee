@@ -38,12 +38,15 @@ interface PlantSlotProps {
   upgrades: Record<string, number>;
   pests?: PestInfestation[];
   customStrains?: any[];
+  employees?: string[];
   onPlant: (slotIndex: number) => void;
   onWater: (slotIndex: number, skillBonus?: number) => void;
   onFertilize: (slotIndex: number) => void;
   onHarvest: (slotIndex: number) => void;
   onUpdate: (slotIndex: number, elapsed: number, phaseIndex: number) => void;
   onTraining: (slotIndex: number, techniqueId: string, success: number) => void;
+  onAssignEmployee?: (slotIndex: number, employeeId: string | undefined) => void;
+  onClickBoost?: (slotIndex: number, seconds: number) => void;
   perfectWindowMs?: number;
 }
 
