@@ -59,16 +59,16 @@ export const TrainingModal = ({
     setSliderPos(50);
     setSliderDir(1);
 
-    // Animate slider
+    // Animate slider (same speed as watering)
     const interval = setInterval(() => {
       setSliderPos(prev => {
-        let next = prev + sliderDir * 3;
-        if (next >= 95) {
-          next = 95;
+        let next = prev + sliderDir * 2.5;
+        if (next >= 98) {
+          next = 98;
           setSliderDir(-1);
         }
-        if (next <= 5) {
-          next = 5;
+        if (next <= 2) {
+          next = 2;
           setSliderDir(1);
         }
         return next;
@@ -84,18 +84,18 @@ export const TrainingModal = ({
     
     if (!selectedTechnique) return;
 
-    // Calculate success based on how close to center (50%)
+    // Calculate success based on how close to center (50%) - same as watering
     const distance = Math.abs(sliderPos - 50);
     let successLevel = 1.0;
     
-    if (distance <= 5) {
+    if (distance <= 10) {
       successLevel = 1.0; // Perfect
-    } else if (distance <= 15) {
-      successLevel = 0.8; // Good
+    } else if (distance <= 20) {
+      successLevel = 0.9; // Good
     } else if (distance <= 30) {
-      successLevel = 0.6; // OK
+      successLevel = 0.75; // OK
     } else {
-      successLevel = 0.4; // Poor
+      successLevel = 0.6; // Passable
     }
 
     onApplyTraining(selectedTechnique.id, successLevel);
@@ -121,17 +121,17 @@ export const TrainingModal = ({
             </p>
 
             <div className="relative h-16 bg-muted/40 rounded-lg overflow-hidden">
-              {/* Perfect zone */}
-              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-20 bg-green-500/20 border-x-2 border-green-500/40" />
+              {/* Perfect zone - larger for easier gameplay */}
+              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-24 bg-green-500/20 border-x-2 border-green-500/40" />
               {/* Good zone */}
-              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-32 bg-yellow-500/10 border-x border-yellow-500/20" />
+              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-40 bg-yellow-500/10 border-x border-yellow-500/20" />
               
               {/* Slider */}
               <div
-                className="absolute inset-y-0 w-2 bg-primary shadow-lg transition-all"
+                className="absolute inset-y-0 w-2 bg-primary shadow-lg"
                 style={{ left: `${sliderPos}%` }}
               >
-                <div className="absolute inset-0 bg-primary animate-pulse" />
+                <div className="absolute inset-0 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.7)]" />
               </div>
             </div>
 
