@@ -21,6 +21,7 @@ import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { Sprout, ShoppingCart, Save, RotateCcw, TrendingUp, Settings, BadgeDollarSign, Leaf, ListChecks, PartyPopper, Dna, Droplets, Bug, Microscope } from 'lucide-react';
+import { EMPLOYEES } from '@/data/employees';
 import nugIcon from '@/assets/ui/nug-icon.png';
 import {
   AlertDialog,
@@ -291,19 +292,27 @@ const Index = () => {
   };
 
   const handleHireEmployee = (employeeId: string) => {
-    const employee = state.employees.find(e => e === employeeId);
-    if (employee) {
+    const employeeData = EMPLOYEES.find(e => e.id === employeeId);
+    if (!employeeData) {
+      toast.error('Mitarbeiter nicht gefunden!');
+      return;
+    }
+
+    if (state.employees.includes(employeeId)) {
       toast.error('Mitarbeiter bereits angestellt!');
       return;
     }
 
-    // Find employee data
-    const employeeData = state.employees.find(e => e === employeeId);
-    if (!employeeData) return;
+    if (state.nugs < employeeData.price) {
+      toast.error('Nicht genug Nugs!', {
+        description: `Du brauchst ${employeeData.price} Nugs`
+      });
+      return;
+    }
 
-    if (hireEmployee(employeeId)) {
-      toast.success('Mitarbeiter angestellt!', {
-        description: `Du hast einen neuen Mitarbeiter eingestellt`
+    if (hireEmployee(employeeId, employeeData.price)) {
+      toast.success(`${employeeData.name} angestellt!`, {
+        description: `-${employeeData.price} Nugs`
       });
     } else {
       toast.error('Fehler beim Einstellen!');

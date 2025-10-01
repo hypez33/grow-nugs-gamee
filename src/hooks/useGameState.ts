@@ -1298,15 +1298,19 @@ export const useGameState = () => {
     });
   }, []);
 
-  const hireEmployee = useCallback((employeeId: string): boolean => {
+  const hireEmployee = useCallback((employeeId: string, price: number): boolean => {
     let success = false;
     setState(prev => {
       if (prev.employees.includes(employeeId)) {
         return prev; // Already hired
       }
+      if (prev.nugs < price) {
+        return prev; // Not enough nugs
+      }
       success = true;
       return {
         ...prev,
+        nugs: prev.nugs - price,
         employees: [...prev.employees, employeeId],
       };
     });
