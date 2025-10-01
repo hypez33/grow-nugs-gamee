@@ -436,6 +436,7 @@ const Index = () => {
           <TabsContent value="environment">
             <EnvironmentControl
               environment={state.environment}
+              plants={state.slots}
               currentPhase="veg"
               envUpgrades={state.envUpgrades}
               nugs={state.nugs}

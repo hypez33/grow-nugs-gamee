@@ -3,12 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Thermometer, Droplets, Zap, Sun, Moon, Wind } from 'lucide-react';
+import { Thermometer, Droplets, Zap, Sun, Moon, Wind, AlertCircle } from 'lucide-react';
 import { EnvironmentState, PHASE_OPTIMAL_ENV, ENV_UPGRADES } from '@/data/environment';
+import { Plant } from '@/hooks/useGameState';
 import { cn } from '@/lib/utils';
 
 interface EnvironmentControlProps {
   environment: EnvironmentState;
+  plants: (Plant | null)[];
   currentPhase: string;
   envUpgrades: Record<string, number>;
   nugs: number;
@@ -19,6 +21,7 @@ interface EnvironmentControlProps {
 
 export const EnvironmentControl = ({
   environment,
+  plants,
   currentPhase,
   envUpgrades,
   nugs,
@@ -28,16 +31,30 @@ export const EnvironmentControl = ({
 }: EnvironmentControlProps) => {
   const optimal = PHASE_OPTIMAL_ENV[currentPhase] || PHASE_OPTIMAL_ENV['veg'];
 
+  // Calculate average values from all plants
+  const activePlants = plants.filter(p => p !== null) as Plant[];
+  const avgValues = activePlants.length > 0 ? {
+    ph: activePlants.reduce((sum, p) => sum + p.environment.ph, 0) / activePlants.length,
+    ec: activePlants.reduce((sum, p) => sum + p.environment.ec, 0) / activePlants.length,
+    humidity: activePlants.reduce((sum, p) => sum + p.environment.humidity, 0) / activePlants.length,
+    temperature: activePlants.reduce((sum, p) => sum + p.environment.temperature, 0) / activePlants.length
+  } : null;
+
   const getStatus = (value: number, min: number, max: number): 'optimal' | 'warning' | 'danger' => {
     if (value >= min && value <= max) return 'optimal';
     const deviation = Math.max(Math.abs(value - min), Math.abs(value - max));
     return deviation > (max - min) * 0.3 ? 'danger' : 'warning';
   };
 
-  const phStatus = getStatus(environment.ph, optimal.phMin, optimal.phMax);
-  const ecStatus = getStatus(environment.ec, optimal.ecMin, optimal.ecMax);
-  const humStatus = getStatus(environment.humidity, optimal.humidityMin, optimal.humidityMax);
-  const tempStatus = getStatus(environment.temperature, optimal.tempMin, optimal.tempMax);
+  const currentPh = avgValues?.ph ?? environment.ph;
+  const currentEc = avgValues?.ec ?? environment.ec;
+  const currentHum = avgValues?.humidity ?? environment.humidity;
+  const currentTemp = avgValues?.temperature ?? environment.temperature;
+
+  const phStatus = getStatus(currentPh, optimal.phMin, optimal.phMax);
+  const ecStatus = getStatus(currentEc, optimal.ecMin, optimal.ecMax);
+  const humStatus = getStatus(currentHum, optimal.humidityMin, optimal.humidityMax);
+  const tempStatus = getStatus(currentTemp, optimal.tempMin, optimal.tempMax);
 
   const StatusBadge = ({ status }: { status: 'optimal' | 'warning' | 'danger' }) => (
     <Badge 
@@ -54,6 +71,22 @@ export const EnvironmentControl = ({
 
   return (
     <div className="space-y-6">
+      {/* Live Status Info */}
+      {avgValues && (
+        <Card className="p-4 bg-primary/5 border-primary/20">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-primary mt-0.5" />
+            <div className="flex-1">
+              <div className="font-medium mb-1">Live Umgebungswerte</div>
+              <div className="text-sm text-muted-foreground">
+                Die angezeigten Werte sind Durchschnitte aller aktiven Pflanzen. 
+                Nutze die Regler unten, um die Werte zu korrigieren.
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Main Environment Controls */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* pH Control */}
@@ -67,13 +100,13 @@ export const EnvironmentControl = ({
               <StatusBadge status={phStatus} />
             </div>
             
-            <div className="text-2xl font-bold">{environment.ph.toFixed(1)}</div>
+            <div className="text-2xl font-bold">{currentPh.toFixed(1)}</div>
             <div className="text-xs text-muted-foreground">
               Optimal: {optimal.phMin.toFixed(1)} - {optimal.phMax.toFixed(1)}
             </div>
             
             <Slider
-              value={[environment.ph]}
+              value={[currentPh]}
               min={5.0}
               max={7.5}
               step={0.1}
@@ -98,13 +131,13 @@ export const EnvironmentControl = ({
               <StatusBadge status={ecStatus} />
             </div>
             
-            <div className="text-2xl font-bold">{environment.ec.toFixed(1)} mS/cm</div>
+            <div className="text-2xl font-bold">{currentEc.toFixed(1)} mS/cm</div>
             <div className="text-xs text-muted-foreground">
               Optimal: {optimal.ecMin.toFixed(1)} - {optimal.ecMax.toFixed(1)}
             </div>
             
             <Slider
-              value={[environment.ec]}
+              value={[currentEc]}
               min={0.0}
               max={3.0}
               step={0.1}
@@ -129,13 +162,13 @@ export const EnvironmentControl = ({
               <StatusBadge status={humStatus} />
             </div>
             
-            <div className="text-2xl font-bold">{environment.humidity.toFixed(0)}%</div>
+            <div className="text-2xl font-bold">{currentHum.toFixed(0)}%</div>
             <div className="text-xs text-muted-foreground">
               Optimal: {optimal.humidityMin} - {optimal.humidityMax}%
             </div>
             
             <Slider
-              value={[environment.humidity]}
+              value={[currentHum]}
               min={20}
               max={90}
               step={1}
@@ -160,13 +193,13 @@ export const EnvironmentControl = ({
               <StatusBadge status={tempStatus} />
             </div>
             
-            <div className="text-2xl font-bold">{environment.temperature.toFixed(1)}°C</div>
+            <div className="text-2xl font-bold">{currentTemp.toFixed(1)}°C</div>
             <div className="text-xs text-muted-foreground">
               Optimal: {optimal.tempMin} - {optimal.tempMax}°C
             </div>
             
             <Slider
-              value={[environment.temperature]}
+              value={[currentTemp]}
               min={15}
               max={35}
               step={0.5}

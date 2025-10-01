@@ -721,13 +721,28 @@ export const useGameState = () => {
 
   // Environment functions
   const adjustEnvironment = useCallback((param: keyof EnvironmentState, value: number) => {
-    setState(prev => ({
-      ...prev,
-      environment: {
-        ...prev.environment,
-        [param]: value
-      }
-    }));
+    setState(prev => {
+      // Adjust all plant environments
+      const newSlots = prev.slots.map(plant => {
+        if (!plant) return plant;
+        return {
+          ...plant,
+          environment: {
+            ...plant.environment,
+            [param]: value
+          }
+        };
+      });
+      
+      return {
+        ...prev,
+        slots: newSlots,
+        environment: {
+          ...prev.environment,
+          [param]: value
+        }
+      };
+    });
   }, []);
 
   const toggleLightCycle = useCallback(() => {
