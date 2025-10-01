@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Plant, PestInfestation } from '@/hooks/useGameState';
 import { usePlantLogic } from '@/hooks/usePlantLogic';
 import { PHASES } from '@/data/phases';
-import { Droplets, Sprout, Sparkles, Bug, AlertTriangle, Gauge, Wind, Thermometer, AlertOctagon, Scissors } from 'lucide-react';
+import { Droplets, Sprout, Sparkles, Bug, AlertTriangle, Gauge, Wind, Thermometer, AlertOctagon, Scissors, Bot, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { EnvironmentState } from '@/data/environment';
 import { PESTS } from '@/data/pests';
@@ -15,6 +15,7 @@ import { TrainingModal } from './TrainingModal';
 import { AppliedTraining } from '@/data/training';
 import { AutomationPanel } from './AutomationPanel';
 import { toast } from 'sonner';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 // Import phase images
 import germinationImg from '@/assets/phases/germination.png';
@@ -90,6 +91,7 @@ export const PlantSlot = ({
   const [clickCooldown, setClickCooldown] = useState(false);
   const [particles, setParticles] = useState<Array<{id: number; x: number; y: number}>>([]);
   const [boostText, setBoostText] = useState<{id: number; text: string; x: number; y: number} | null>(null);
+  const [automationOpen, setAutomationOpen] = useState(false);
 
   useEffect(() => {
     if (!plant) return;
@@ -337,17 +339,40 @@ export const PlantSlot = ({
         </div>
       </div>
 
-      {/* Automation Panel */}
+      {/* Automation Panel - Collapsible */}
       {automation && (
         <div className="mb-4">
-          <AutomationPanel
-            automation={automation}
-            employees={employees}
-            strainId={plant.strainId}
-            onToggleAutomation={(enabled) => onToggleAutomation?.(slotIndex, enabled)}
-            onAssignEmployee={(employeeId) => onAssignEmployee?.(slotIndex, employeeId)}
-            onSetAutoReplant={(strainId) => onSetAutoReplant?.(slotIndex, strainId)}
-          />
+          <Collapsible open={automationOpen} onOpenChange={setAutomationOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full flex items-center justify-between hover:bg-primary/10"
+              >
+                <div className="flex items-center gap-2">
+                  <Bot className="w-4 h-4" />
+                  <span className="text-sm font-semibold">
+                    Automation {automation.isAutomated ? '✓' : ''}
+                  </span>
+                </div>
+                {automationOpen ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <AutomationPanel
+                automation={automation}
+                employees={employees}
+                strainId={plant.strainId}
+                onToggleAutomation={(enabled) => onToggleAutomation?.(slotIndex, enabled)}
+                onAssignEmployee={(employeeId) => onAssignEmployee?.(slotIndex, employeeId)}
+                onSetAutoReplant={(strainId) => onSetAutoReplant?.(slotIndex, strainId)}
+              />
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       )}
 
