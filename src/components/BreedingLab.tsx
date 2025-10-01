@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Dna, Sparkles, Copy, Plus } from 'lucide-react';
-import { STRAINS } from '@/data/strains';
-import { BREEDING_RECIPES, PHENOTYPES, CLONE_COST, MOTHER_PLANT_COST } from '@/data/breeding';
+import { STRAINS, Strain } from '@/data/strains';
+import { PHENOTYPES, CLONE_COST, MOTHER_PLANT_COST, CustomStrain } from '@/data/breeding';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -13,6 +13,7 @@ interface BreedingLabProps {
   nugs: number;
   motherPlants: any[];
   discoveredStrains: string[];
+  customStrains: CustomStrain[];
   onBreed: (parent1: string, parent2: string) => void;
   onCreateMother: (strainId: string, phenotypeId?: string) => void;
   onClone: (motherId: string, slotIndex: number) => void;
@@ -23,6 +24,7 @@ export const BreedingLab = ({
   nugs, 
   motherPlants, 
   discoveredStrains,
+  customStrains,
   onBreed,
   onCreateMother,
   onClone,
@@ -43,10 +45,10 @@ export const BreedingLab = ({
     }, 2000);
   };
 
-  const availableStrains = STRAINS.filter(s => discoveredStrains.includes(s.id));
-  const possibleRecipes = BREEDING_RECIPES.filter(r => 
-    discoveredStrains.includes(r.parent1) && discoveredStrains.includes(r.parent2)
-  );
+  const availableStrains: (Strain | CustomStrain)[] = [
+    ...STRAINS.filter(s => discoveredStrains.includes(s.id)),
+    ...customStrains
+  ];
 
   return (
     <div className="space-y-6">
@@ -132,19 +134,12 @@ export const BreedingLab = ({
           {isBreeding ? "Züchtet..." : "Kreuzen"}
         </Button>
 
-        {/* Possible offspring */}
-        {possibleRecipes.length > 0 && (
-          <div className="mt-4 p-3 bg-muted/30 rounded-lg">
-            <div className="text-xs font-medium mb-2">Mögliche Kreuzungen:</div>
-            <div className="flex flex-wrap gap-2">
-              {possibleRecipes.map(recipe => (
-                <Badge key={recipe.offspring} variant="secondary" className="text-xs">
-                  {recipe.offspring} ({Math.round(recipe.discoveryChance * 100)}%)
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
+        <div className="mt-4 p-3 bg-muted/30 rounded-lg">
+          <div className="text-xs font-medium mb-2">💡 Tipp:</div>
+          <p className="text-xs text-muted-foreground">
+            Kreuze beliebige Strains miteinander! Je höher die Generation, desto verrücktere Namen entstehen.
+          </p>
+        </div>
       </Card>
 
       {/* Mother Plants Section */}

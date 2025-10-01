@@ -9,6 +9,8 @@ export interface Strain {
   nutrientSensitivity: number; // 0-1, higher = more sensitive to nutrients
   seedPrice: number; // Cost in Nugs
   description: string;
+  generation?: number;
+  parents?: [string, string];
 }
 
 export const STRAINS: Strain[] = [
@@ -21,7 +23,8 @@ export const STRAINS: Strain[] = [
     waterTolerance: 0.8,
     nutrientSensitivity: 0.3,
     seedPrice: 50,
-    description: 'Anfängerfreundlich, stabile Erträge, verzeiht Fehler'
+    description: 'Anfängerfreundlich, stabile Erträge, verzeiht Fehler',
+    generation: 0
   },
   {
     id: 'blue-zushi',
@@ -32,7 +35,8 @@ export const STRAINS: Strain[] = [
     waterTolerance: 0.6,
     nutrientSensitivity: 0.5,
     seedPrice: 200,
-    description: 'Hochwertig, benötigt präzise Pflege für Top-Erträge'
+    description: 'Hochwertig, benötigt präzise Pflege für Top-Erträge',
+    generation: 0
   },
   {
     id: 'honey-cream',
@@ -43,7 +47,8 @@ export const STRAINS: Strain[] = [
     waterTolerance: 0.9,
     nutrientSensitivity: 0.2,
     seedPrice: 60,
-    description: 'Schnell wachsend, robust, ideal für Anfänger'
+    description: 'Schnell wachsend, robust, ideal für Anfänger',
+    generation: 0
   },
   {
     id: 'black-muffin',
@@ -54,7 +59,8 @@ export const STRAINS: Strain[] = [
     waterTolerance: 0.5,
     nutrientSensitivity: 0.7,
     seedPrice: 350,
-    description: 'Elite-Strain, maximale Erträge bei perfekter Pflege'
+    description: 'Elite-Strain, maximale Erträge bei perfekter Pflege',
+    generation: 0
   },
   {
     id: 'gelato-auto',
@@ -65,7 +71,8 @@ export const STRAINS: Strain[] = [
     waterTolerance: 0.7,
     nutrientSensitivity: 0.4,
     seedPrice: 75,
-    description: 'Autoflower, schneller Zyklus, mittlere Erträge'
+    description: 'Autoflower, schneller Zyklus, mittlere Erträge',
+    generation: 0
   }
 ];
 

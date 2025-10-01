@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Strain } from '@/data/strains';
+import { Strain, STRAINS } from '@/data/strains';
 import { EnvironmentState } from '@/data/environment';
-import { BREEDING_RECIPES } from '@/data/breeding';
+import { breedTwoStrains, CustomStrain } from '@/data/breeding';
 import { PESTS, TREATMENTS, getPestProtection } from '@/data/pests';
+import { ENHANCERS } from '@/data/enhancers';
 
 export interface PlantModifiers {
   waterStacks: number;
@@ -13,6 +14,7 @@ export interface PlantModifiers {
   qualityMultiplier: number;
   phenotypeId?: string;
   pestInfestationIds: string[];
+  appliedEnhancers: string[]; // PGR, terpen spray, etc.
 }
 
 export interface Plant {
@@ -120,6 +122,7 @@ export interface GameState {
   breeding: {
     motherPlants: MotherPlant[];
     discoveredStrains: string[];
+    customStrains: CustomStrain[];
   };
   environment: EnvironmentState;
   envUpgrades: Record<string, number>;
@@ -189,7 +192,8 @@ const INITIAL_STATE: GameState = {
   },
   breeding: {
     motherPlants: [],
-    discoveredStrains: ['green-gelato', 'honey-cream', 'gelato-auto']
+    discoveredStrains: ['green-gelato', 'honey-cream', 'gelato-auto'],
+    customStrains: []
   },
   environment: {
     ph: 6.2,
@@ -284,7 +288,8 @@ export const useGameState = () => {
           lastWaterTime: 0,
           lastFertilizerTime: 0,
           qualityMultiplier: 1.0,
-          pestInfestationIds: []
+          pestInfestationIds: [],
+          appliedEnhancers: []
         }
       };
       return { ...prev, slots: newSlots };
@@ -643,31 +648,31 @@ export const useGameState = () => {
   }, []);
 
   // Breeding functions
-  const breedStrains = useCallback((parent1: string, parent2: string): boolean => {
-    let success = false;
+  const breedStrains = useCallback((parent1Id: string, parent2Id: string): boolean => {
+    let newStrain: CustomStrain | null = null;
+    
     setState(prev => {
-      const recipe = BREEDING_RECIPES.find((r: any) => 
-        (r.parent1 === parent1 && r.parent2 === parent2) || 
-        (r.parent1 === parent2 && r.parent2 === parent1)
-      );
+      // Find parent strains (can be base strains or custom)
+      const allStrains = [...STRAINS, ...prev.breeding.customStrains];
+      const p1 = allStrains.find(s => s.id === parent1Id);
+      const p2 = allStrains.find(s => s.id === parent2Id);
       
-      if (!recipe) return prev;
+      if (!p1 || !p2) return prev;
       
-      const roll = Math.random();
-      success = roll < recipe.discoveryChance;
+      // Create new hybrid
+      newStrain = breedTwoStrains(p1 as CustomStrain, p2 as CustomStrain);
       
-      if (success && !prev.breeding.discoveredStrains.includes(recipe.offspring)) {
-        return {
-          ...prev,
-          breeding: {
-            ...prev.breeding,
-            discoveredStrains: [...prev.breeding.discoveredStrains, recipe.offspring]
-          }
-        };
-      }
-      return prev;
+      return {
+        ...prev,
+        breeding: {
+          ...prev.breeding,
+          customStrains: [...prev.breeding.customStrains, newStrain],
+          discoveredStrains: [...prev.breeding.discoveredStrains, newStrain.id]
+        }
+      };
     });
-    return success;
+    
+    return newStrain !== null;
   }, []);
 
   const createMotherPlant = useCallback((strainId: string, phenotypeId?: string) => {
@@ -789,6 +794,36 @@ export const useGameState = () => {
     });
   }, []);
 
+  // Enhancer functions (PGR, Terpen Spray, etc.)
+  const applyEnhancer = useCallback((slotIndex: number, enhancerId: string, price: number): boolean => {
+    if (state.nugs >= price) {
+      setState(prev => {
+        const plant = prev.slots[slotIndex];
+        if (!plant) return prev;
+        
+        const enhancer = ENHANCERS.find((e: any) => e.id === enhancerId);
+        if (!enhancer) return prev;
+
+        const newSlots = [...prev.slots];
+        newSlots[slotIndex] = {
+          ...plant,
+          modifiers: {
+            ...plant.modifiers,
+            appliedEnhancers: [...plant.modifiers.appliedEnhancers, enhancerId]
+          }
+        };
+
+        return {
+          ...prev,
+          nugs: prev.nugs - price,
+          slots: newSlots
+        };
+      });
+      return true;
+    }
+    return false;
+  }, [state.nugs]);
+
   return {
     state,
     manualSave,
@@ -820,6 +855,7 @@ export const useGameState = () => {
     toggleLightCycle,
     buyEnvUpgrade,
     treatInfestation,
-    checkForPests
+    checkForPests,
+    applyEnhancer
   };
 };

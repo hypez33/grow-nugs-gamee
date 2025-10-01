@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { Plant, PlantModifiers } from './useGameState';
 import { PHASES } from '@/data/phases';
 import { STRAINS, getRarityMultiplier } from '@/data/strains';
+import { ENHANCERS } from '@/data/enhancers';
 
 const WATER_COST = 5;
 const FERTILIZER_COST = 15;
@@ -175,6 +176,16 @@ export const usePlantLogic = (upgrades: Record<string, number>, growthMultiplier
     // Water stacks bonus (capped)
     const waterBonus = Math.min(0.25, plant.modifiers.waterStacks * 0.05);
     yield_ *= (1 + waterBonus);
+
+    // Apply enhancers (PGR, Terpen Spray, etc.) - increases yield but damages quality
+    if (plant.modifiers.appliedEnhancers && plant.modifiers.appliedEnhancers.length > 0) {
+      plant.modifiers.appliedEnhancers.forEach((enhancerId: string) => {
+        const enhancer = ENHANCERS.find((e: any) => e.id === enhancerId);
+        if (enhancer) {
+          yield_ *= enhancer.yieldMultiplier;
+        }
+      });
+    }
 
     // Random variance ±10%
     yield_ *= 0.9 + Math.random() * 0.2;

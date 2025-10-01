@@ -399,6 +399,7 @@ const Index = () => {
               nugs={state.nugs}
               motherPlants={state.breeding.motherPlants}
               discoveredStrains={state.breeding.discoveredStrains}
+              customStrains={state.breeding.customStrains}
               onBreed={(p1, p2) => {
                 const success = breedStrains(p1, p2);
                 toast[success ? 'success' : 'warning'](
