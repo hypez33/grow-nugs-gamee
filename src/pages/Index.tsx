@@ -48,7 +48,8 @@ const Index = () => {
     recordWaterAction,
     recordPerfectWater,
     startCuring,
-    processCuringTick
+    processCuringTick,
+    rushCuring
   } = useGameState();
 
   const logic = usePlantLogic(state.upgrades, state.event?.effects?.growthMultiplier ?? 1);

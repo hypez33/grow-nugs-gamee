@@ -41,7 +41,7 @@ export const CuringPanel = ({ batches, onRush }: { batches: CuringBatchView[]; o
                 </div>
                 {onRush && remaining > 0 && (
                   <div className="mt-2 text-right">
-                    <Button size="xs" variant="outline" onClick={() => onRush(b.id)}>
+                    <Button size="sm" variant="outline" onClick={() => onRush(b.id)}>
                       <Zap className="w-3 h-3 mr-1" /> Schnellreifen (Qualitätsverlust)
                     </Button>
                   </div>
