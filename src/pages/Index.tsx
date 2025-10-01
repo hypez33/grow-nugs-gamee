@@ -6,7 +6,9 @@ import { UPGRADES, getUpgradePrice } from '@/data/upgrades';
 import { ENV_UPGRADES } from '@/data/environment';
 import { TRAINING_TECHNIQUES } from '@/data/training';
 import { usePlantLogic } from '@/hooks/usePlantLogic';
+import { useAutomation, AutomationState } from '@/hooks/useAutomation';
 import { PlantSlot } from '@/components/PlantSlot';
+import { EMPLOYEES } from '@/data/employees';
 import { ShopModal } from '@/components/ShopModal';
 import { ShopContent } from '@/components/ShopContent';
 import { TradePanel } from '@/components/TradePanel';
@@ -21,7 +23,6 @@ import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { Sprout, ShoppingCart, Save, RotateCcw, TrendingUp, Settings, BadgeDollarSign, Leaf, ListChecks, PartyPopper, Dna, Droplets, Bug, Microscope } from 'lucide-react';
-import { EMPLOYEES } from '@/data/employees';
 import nugIcon from '@/assets/ui/nug-icon.png';
 import {
   AlertDialog,
@@ -79,6 +80,9 @@ const Index = () => {
   } = useGameState();
 
   const logic = usePlantLogic(state.upgrades, state.event?.effects?.growthMultiplier ?? 1, state.breeding.customStrains);
+
+  // Automation state per slot
+  const [slotAutomation, setSlotAutomation] = useState<Record<number, AutomationState>>({});
 
   const [shopOpen, setShopOpen] = useState(false);
   const [plantingSlot, setPlantingSlot] = useState<number | null>(null);
@@ -320,9 +324,23 @@ const Index = () => {
   };
 
   const handleClickBoost = (slotIndex: number, seconds: number) => {
+    const plant = state.slots[slotIndex];
+    if (!plant) return;
+
+    const currentBoosts = plant.clickBoosts || 0;
+    
+    // Calculate progressive cost (free for first 5, then increasing)
+    const clickCost = currentBoosts < 5 ? 0 : Math.floor(Math.pow(currentBoosts - 4, 1.5));
+    
+    // Try to spend nugs if cost > 0
+    if (clickCost > 0 && !spendNugs(clickCost)) {
+      toast.error('Nicht genug Nugs für Click-Boost!');
+      return;
+    }
+
     if (boostPlantGrowth(slotIndex, seconds)) {
       toast.success(`Wachstum beschleunigt!`, {
-        description: `+${seconds} Sekunden`,
+        description: `+${seconds} Sekunden${clickCost > 0 ? ` (-${clickCost} Nugs)` : ''}`,
         duration: 1000
       });
     } else {
@@ -332,6 +350,98 @@ const Index = () => {
       });
     }
   };
+
+  const handleToggleAutomation = (slotIndex: number, enabled: boolean) => {
+    setSlotAutomation(prev => ({
+      ...prev,
+      [slotIndex]: {
+        ...prev[slotIndex],
+        isAutomated: enabled
+      }
+    }));
+    toast.success(enabled ? 'Automation aktiviert' : 'Automation deaktiviert');
+  };
+
+  const handleAssignEmployee = (slotIndex: number, employeeId: string | undefined) => {
+    setSlotAutomation(prev => ({
+      ...prev,
+      [slotIndex]: {
+        ...prev[slotIndex],
+        isAutomated: prev[slotIndex]?.isAutomated || false,
+        assignedEmployeeId: employeeId
+      }
+    }));
+    
+    const employee = EMPLOYEES.find(e => e.id === employeeId);
+    if (employee) {
+      toast.success(`${employee.name} zugewiesen`, {
+        description: 'Aktiviere Automation um den Mitarbeiter arbeiten zu lassen'
+      });
+    } else {
+      toast.info('Mitarbeiter entfernt');
+    }
+  };
+
+  const handleSetAutoReplant = (slotIndex: number, strainId: string | undefined) => {
+    setSlotAutomation(prev => ({
+      ...prev,
+      [slotIndex]: {
+        ...prev[slotIndex],
+        isAutomated: prev[slotIndex]?.isAutomated || false,
+        assignedEmployeeId: prev[slotIndex]?.assignedEmployeeId,
+        autoReplantStrainId: strainId
+      }
+    }));
+    
+    if (strainId) {
+      toast.success('Auto-Replant aktiviert');
+    } else {
+      toast.info('Auto-Replant deaktiviert');
+    }
+  };
+
+  // Initialize automation hook after handlers are defined
+  const automation = useAutomation(
+    EMPLOYEES.filter(e => state.employees.includes(e.id)),
+    handleWater,
+    handleFertilize,
+    handleHarvest,
+    (slotIndex, strainId, soilType) => {
+      plantSeed(slotIndex, strainId, soilType);
+    }
+  );
+
+  // Automation checks - runs every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      state.slots.forEach((plant, slotIndex) => {
+        if (!plant) return;
+        
+        const slotAuto = slotAutomation[slotIndex];
+        if (!slotAuto || !slotAuto.isAutomated) return;
+
+        const currentPhase = logic.getCurrentPhase(plant);
+        const timeMultiplier = logic.getTimeMultiplier(plant.strainId);
+        const soilMultiplier = plant.modifiers.soilType === 'light-mix' ? 0.9 : 1.0;
+        const phaseDuration = currentPhase.duration * timeMultiplier * soilMultiplier;
+        const progress = (plant.elapsedInPhase / phaseDuration) * 100;
+
+        // Check for auto-watering
+        automation.checkAutoWatering(plant, slotIndex, slotAuto);
+
+        // Check for auto-fertilizing
+        automation.checkAutoFertilizing(plant, slotIndex, slotAuto);
+
+        // Check for auto-harvest
+        automation.checkAutoHarvest(plant, slotIndex, slotAuto, progress);
+
+        // Check for auto-replant
+        automation.checkAutoReplant(slotIndex, slotAuto, !!plant);
+      });
+    }, 5000); // Check every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [state.slots, slotAutomation, automation, logic]);
 
   const handleBuyUpgrade = (upgradeId: string) => {
     const upgrade = UPGRADES.find((u) => u.id === upgradeId);
@@ -500,13 +610,16 @@ const Index = () => {
                   pests={state.pests.infestations}
                   customStrains={state.breeding.customStrains}
                   employees={state.employees}
+                  automation={slotAutomation[index] || { isAutomated: false }}
                   onPlant={handlePlantClick}
                   onWater={handleWater}
                   onFertilize={handleFertilize}
                   onHarvest={handleHarvest}
                   onUpdate={handleUpdate}
                   onTraining={handleTraining}
-                  onAssignEmployee={assignEmployee}
+                  onAssignEmployee={handleAssignEmployee}
+                  onToggleAutomation={handleToggleAutomation}
+                  onSetAutoReplant={handleSetAutoReplant}
                   onClickBoost={handleClickBoost}
                   perfectWindowMs={state.event?.id === 'festival' ? 4000 : state.event?.id === 'cosmic-alignment' ? 3500 : state.event?.id === 'mystic-fog' ? 1500 : 2500}
                 />

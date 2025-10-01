@@ -13,6 +13,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { TrainingModal } from './TrainingModal';
 import { AppliedTraining } from '@/data/training';
+import { AutomationPanel } from './AutomationPanel';
+import { toast } from 'sonner';
 
 // Import phase images
 import germinationImg from '@/assets/phases/germination.png';
@@ -39,6 +41,11 @@ interface PlantSlotProps {
   pests?: PestInfestation[];
   customStrains?: any[];
   employees?: string[];
+  automation?: {
+    isAutomated: boolean;
+    assignedEmployeeId?: string;
+    autoReplantStrainId?: string;
+  };
   onPlant: (slotIndex: number) => void;
   onWater: (slotIndex: number, skillBonus?: number) => void;
   onFertilize: (slotIndex: number) => void;
@@ -46,6 +53,8 @@ interface PlantSlotProps {
   onUpdate: (slotIndex: number, elapsed: number, phaseIndex: number) => void;
   onTraining: (slotIndex: number, techniqueId: string, success: number) => void;
   onAssignEmployee?: (slotIndex: number, employeeId: string | undefined) => void;
+  onToggleAutomation?: (slotIndex: number, enabled: boolean) => void;
+  onSetAutoReplant?: (slotIndex: number, strainId: string | undefined) => void;
   onClickBoost?: (slotIndex: number, seconds: number) => void;
   perfectWindowMs?: number;
 }
@@ -58,6 +67,7 @@ export const PlantSlot = ({
   pests,
   customStrains = [],
   employees = [],
+  automation,
   onPlant,
   onWater,
   onFertilize,
@@ -65,6 +75,8 @@ export const PlantSlot = ({
   onUpdate,
   onTraining,
   onAssignEmployee,
+  onToggleAutomation,
+  onSetAutoReplant,
   onClickBoost,
   perfectWindowMs = 2500
 }: PlantSlotProps) => {
@@ -170,7 +182,7 @@ export const PlantSlot = ({
   const waterLevel = Math.max(0, Math.min(100, Math.round((waterRemaining / (waterTotal || 1)) * 100)));
   const waterSecs = Math.ceil(waterRemaining / 1000);
 
-  // Click boost handler
+  // Click boost handler with cost scaling
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!plant || isHarvestReady || clickCooldown) return;
     
@@ -181,11 +193,31 @@ export const PlantSlot = ({
       return; // Max boosts reached
     }
 
-    // Calculate boost (diminishing returns)
+    // Calculate boost with diminishing returns and cost
     const boostSeconds = currentBoosts < 3 ? 5 : currentBoosts < 6 ? 3 : currentBoosts < 10 ? 2 : 1;
+    
+    // Progressive cost scaling: free for first 5, then increasing cost
+    const clickCost = currentBoosts < 5 ? 0 : Math.floor(Math.pow(currentBoosts - 4, 1.5));
+    
+    if (clickCost > 0 && nugs < clickCost) {
+      toast.error('Nicht genug Nugs für Click-Boost!', {
+        description: `Kosten: ${clickCost} Nugs`,
+        duration: 1500
+      });
+      return;
+    }
     
     if (onClickBoost) {
       onClickBoost(slotIndex, boostSeconds);
+      
+      // Deduct cost if applicable
+      if (clickCost > 0) {
+        // Cost would be deducted in parent component
+        toast.info(`Click-Boost (${clickCost} Nugs)`, {
+          description: `+${boostSeconds}s Wachstum`,
+          duration: 1000
+        });
+      }
       
       // Set cooldown
       setClickCooldown(true);
@@ -206,7 +238,7 @@ export const PlantSlot = ({
       setTimeout(() => setParticles([]), 800);
 
       // Show boost text
-      setBoostText({ id: Date.now(), text: `+${boostSeconds}s`, x, y });
+      setBoostText({ id: Date.now(), text: `+${boostSeconds}s${clickCost > 0 ? ` (-${clickCost}₦)` : ''}`, x, y });
       setTimeout(() => setBoostText(null), 1000);
     }
   };
@@ -304,6 +336,20 @@ export const PlantSlot = ({
           </p>
         </div>
       </div>
+
+      {/* Automation Panel */}
+      {automation && (
+        <div className="mb-4">
+          <AutomationPanel
+            automation={automation}
+            employees={employees}
+            strainId={plant.strainId}
+            onToggleAutomation={(enabled) => onToggleAutomation?.(slotIndex, enabled)}
+            onAssignEmployee={(employeeId) => onAssignEmployee?.(slotIndex, employeeId)}
+            onSetAutoReplant={(strainId) => onSetAutoReplant?.(slotIndex, strainId)}
+          />
+        </div>
+      )}
 
       {/* Environment & Pests Info */}
       {(plant.environment || (pests && pests.length > 0)) && (
